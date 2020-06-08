@@ -5,7 +5,7 @@ import pathlib
 
 HOME = str(pathlib.Path(__file__).resolve().parent)
 
-def test_basic_generator():
+def test_basic_aggregator():
     os.chdir(HOME)
     cmd = ['bin/dfu_image_aggregator',
            '0x20B1', '0x0014', '0x0102', 'boot_input.bin', 'data_input.bin', 'output.bin' ]
@@ -25,5 +25,5 @@ def test_basic_generator():
     print('PASS')
 
 if __name__ == "__main__":
-    print('test_basic_generator')
-    test_basic_generator()
+    print('test_basic_aggregator')
+    test_basic_aggregator()
