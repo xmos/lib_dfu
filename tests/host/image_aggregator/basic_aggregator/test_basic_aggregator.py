@@ -7,8 +7,8 @@ HOME = str(pathlib.Path(__file__).resolve().parent)
 
 def test_basic_generator():
     os.chdir(HOME)
-    cmd = ['bin/dfu_suffix_generator',
-           '0x20B1', '0x0014', '0x0102', 'input.bin', 'output.bin' ]
+    cmd = ['bin/dfu_image_aggregator',
+           '0x20B1', '0x0014', '0x0102', 'boot_input.bin', 'data_input.bin', 'output.bin' ]
     try:
         output = subprocess.check_output(cmd)
     except subprocess.CalledProcessError as e:

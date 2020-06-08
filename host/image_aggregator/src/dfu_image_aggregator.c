@@ -107,10 +107,10 @@ usage: dfu_suffix_generator VENDOR_ID PRODUCT_ID [BCD_DEVICE] BIN_BOOT_FILE_IN B
     .product_id = product_id,
     .bcd_device = bcd_device
   };
-  printf("Suffix values:\n\tcrc = 0x%08x,\n\tsuffix_length = %d,\n\tsignature = 0x%02x,\n\tbcd_dfu = 0x%04x,\n\tdata_bin_size = %d,\n\tvendor_id = 0x%04x,\n\tproduct_id =  0x%04x,\n\tbcd_device =  0x%04x.\n",
+  printf("Suffix values:\n\tcrc = 0x%08x,\n\tsuffix_length = %d,\n\tsignature = 0x%08x,\n\tbcd_dfu = 0x%04x,\n\tdata_bin_size = %d,\n\tvendor_id = 0x%04x,\n\tproduct_id =  0x%04x,\n\tbcd_device =  0x%04x.\n",
     suffix.crc,
     suffix.suffix_length,
-    suffix.signature,
+    (suffix.signature[2]<<16) + (suffix.signature[1]<<8) + suffix.signature[0],
     suffix.bcd_dfu,
     suffix.data_bin_size,
     suffix.vendor_id,
