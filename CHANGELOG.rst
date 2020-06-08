@@ -1,9 +1,11 @@
 DFU library change log
 ======================
 
-1.0.4
+1.1.0
 -----
 
+  * REMOVED: DFU suffix generator
+  * ADDED: DFU image aggregator
   * CHANGED: Include bcdDevice in suffix
 
 1.0.3
