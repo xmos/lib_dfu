@@ -33,7 +33,7 @@ int main(int argc, char **argv)
   }
   if (vendor_id == 0 || product_id == 0 || bcd_device == 0) {
     fprintf(stderr, "\
-usage: dfu_suffix_generator VENDOR_ID PRODUCT_ID [BCD_DEVICE] BIN_BOOT_FILE_IN BIN_DATA_FILE_IN DFU_FILE_OUT\n\
+usage: dfu_image_aggregator VENDOR_ID PRODUCT_ID [BCD_DEVICE] BIN_BOOT_FILE_IN BIN_DATA_FILE_IN DFU_FILE_OUT\n\
 \n\
        VENDOR_ID, PRODUCT_ID and BCD_DEVICE are non-zero 16bit values\n\
        decimal or hexadecimal format\n\

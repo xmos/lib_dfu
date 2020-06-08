@@ -35,10 +35,10 @@ pipeline {
     }
     stage('Build host app') {
       steps {
-        dir("${REPO}/host/suffix_generator") {
+        dir("${REPO}/host/image_aggregator") {
           sh "cmake ."
           sh "make"
-          stash name: "host-app", includes: "bin/dfu_suffix_generator"
+          stash name: "host-app", includes: "bin/image_aggregator"
         }
       }
     }
@@ -77,7 +77,7 @@ pipeline {
   post {
     success {
       unstash "host-app"
-      archiveArtifacts artifacts: "bin/dfu_suffix_generator", fingerprint: true
+      archiveArtifacts artifacts: "bin/dfu_image_aggregator", fingerprint: true
       updateViewfiles()
     }
     cleanup {
