@@ -38,7 +38,7 @@ pipeline {
         dir("${REPO}/host/image_aggregator") {
           sh "cmake ."
           sh "make"
-          stash name: "host-app", includes: "bin/image_aggregator"
+          stash name: "host-app", includes: "bin/dfu_image_aggregator"
         }
       }
     }
