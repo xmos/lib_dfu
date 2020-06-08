@@ -10,4 +10,6 @@ int verify_dfu_suffix(const unsigned char *file, size_t num_bytes,
                       unsigned short bcd_device,
                       size_t *suffix_length, char msg[256]);
 
+int read_dfu_data_size(const unsigned char *file, size_t num_bytes);
+
 #endif

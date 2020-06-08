@@ -25,6 +25,10 @@ struct dfu_suffix {
   uint8_t signature[3]; /**< The unique DFU signature field */
 
   uint16_t bcd_dfu; /**< DFU specification number, eg 0x0110 */
+  
+  uint32_t data_bin_size; /**< The size of the data partition binary file - either
+                           FFFFFFFFh or must match the size of the binary */
+
 
   uint16_t vendor_id; /**< The vendor ID associated with this file - either
                            FFFFh or must match device's vendor ID */

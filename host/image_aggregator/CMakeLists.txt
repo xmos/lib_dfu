@@ -7,13 +7,13 @@ set (INCLUDE_DIRS
 )
 
 set (SOURCE_FILES
-        src/dfu_suffix_generator.c
+        src/dfu_image_aggregator.c
         src/crc.c
 )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-set (SUFFIX_GEN dfu_suffix_generator)
+set (SUFFIX_GEN dfu_image_aggregator)
 add_executable(${SUFFIX_GEN} ${SOURCE_FILES})
 target_link_libraries(${SUFFIX_GEN} )
 target_include_directories(${SUFFIX_GEN} PRIVATE ${INCLUDE_DIRS})

@@ -78,6 +78,20 @@ int verify_dfu_suffix(const unsigned char *file, size_t num_bytes,
     return 8;
   }
 
+  if (suffix.data_bin_size == 0xFFFFFFFF || suffix.data_bin_size == 0) {
+    sprintf(msg, "Data binary size nor set");
+    return 9;
+  }
   *suffix_length = sizeof(struct dfu_suffix);
   return 0;
 }
+
+int read_dfu_data_size(const unsigned char *file, size_t num_bytes)
+{
+  struct dfu_suffix suffix;
+  for (int i = 0; i < sizeof(struct dfu_suffix); i++) {
+    ((unsigned char*)&suffix)[i] = file[num_bytes - 1 - i];
+  }
+  return suffix.data_bin_size;
+}
+
