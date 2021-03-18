@@ -200,8 +200,10 @@ static enum dfu_status getstatus_from_dnload(bool &busy)
 
     case DNLOAD_ERASING_SECTOR:
       if (!flash_is_busy()) {
-        if (!flash_is_sector_erased(dnload.next_page_address))
-          return ERR_CHECK_ERASED;
+        // See https://github.com/xmos/lib_dfu/issues/44
+        // This works around a problem seen where I2C clock stretching for 5ms breaks the DFU process
+        // if (!flash_is_sector_erased(dnload.next_page_address))
+        //   return ERR_CHECK_ERASED;
 
         if (!is_address_in_an_upgrade_slot(dnload.next_page_address))
           return ERR_ADDRESS;
