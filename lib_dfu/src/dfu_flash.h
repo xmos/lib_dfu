@@ -13,6 +13,7 @@
 #include <stdbool.h>
 
 #include "dfu_flash_result.h"
+#include "data_partition_layout.h"
 
 enum flash_erase_sector_async_result
   flash_erase_sector_async(unsigned address);
