@@ -13,26 +13,28 @@
 #define XASSERT_ENABLE_LINE_NUMBERS 1
 #include "xassert.h"
 
-#include "quadflash_extra.h"
+// #include "quadflash_extra.h"
 #include "dfu.h"
 
-fl_QSPIPorts ports = {
-  PORT_SQI_CS, PORT_SQI_SCLK, PORT_SQI_SIO, XS1_CLKBLK_1
-};
+// fl_QSPIPorts ports = {
+//   PORT_SQI_CS, PORT_SQI_SCLK, PORT_SQI_SIO, XS1_CLKBLK_1
+// };
 
-fl_QuadDeviceSpec spec = { // IS25LQ016B
-  0, 256, 8192, 3, 8, 0x9F, 0, 3, 0x9D4015, 0x20, 4096, 0x06, 0x04,
-  PROT_TYPE_NONE, {{0,0},{0x00,0x00}}, 0x02, 0xEB, 1,
-  SECTOR_LAYOUT_REGULAR, {4096,{0,{0}}}, 0x05, 0x01, 0x01
-};
+// fl_QuadDeviceSpec spec = { // IS25LQ016B
+//   0, 256, 8192, 3, 8, 0x9F, 0, 3, 0x9D4015, 0x20, 4096, 0x06, 0x04,
+//   PROT_TYPE_NONE, {{0,0},{0x00,0x00}}, 0x02, 0xEB, 1,
+//   SECTOR_LAYOUT_REGULAR, {4096,{0,{0}}}, 0x05, 0x01, 0x01
+// };
 
 void write_begin(int upgrade_address)
 {
   enum dfu_state state;
-  int ret;
+  // int ret;
 
-  ret = fl_connectToOneDevice(ports, spec);
-  assert(ret == 0);
+  (void) upgrade_address;
+
+  // ret = fl_connectToOneDevice(ports, spec);
+  // assert(ret == 0);
 
   dfu_locate_upgrade_slots();
   fl_disconnect();
@@ -44,15 +46,15 @@ void write_begin(int upgrade_address)
   state = dfu_getstate();
   assert(state == APP_DETACH);
 
-  ret = fl_connectToOneDevice(ports, spec);
-  assert(ret == 0);
+  // ret = fl_connectToOneDevice(ports, spec);
+  // assert(ret == 0);
 
   dfu_bus_reset();
   state = dfu_getstate();
   assert(state == DFU_IDLE);
 }
 
-FILE * movable write(FILE * movable bin_file, int block_size,
+FILE * movable write(FILE * movable bin_file, size_t block_size,
                      int &upgrade_size)
 {
   struct dfu_getstatus ret;
@@ -65,7 +67,7 @@ FILE * movable write(FILE * movable bin_file, int block_size,
     printintln(block_count);
 
     read = fread(block, 1, block_size, bin_file);
-    assert(read >= 0 && read <= block_size);
+    assert(read != 0 && read <= block_size);
 
     if (read == 0)
       break;
@@ -96,19 +98,20 @@ FILE * movable write(FILE * movable bin_file, int block_size,
   return move(bin_file);
 }
 
-FILE * movable verify(FILE * movable bin_file, int block_size,
+FILE * movable verify(FILE * movable bin_file, size_t block_size,
                       unsigned upgrade_address)
 {
   int page_count = 0;
   unsigned addr = upgrade_address;
   size_t ret;
   char expected[256], actual[256];
+  (void) block_size;
 
   while (!feof(bin_file)) {
     printintln(page_count);
 
     ret = fread(expected, 1, sizeof(expected), bin_file);
-    assert(ret >= 0 && ret <= sizeof(expected));
+    assert(ret != 0 && ret <= sizeof(expected));
 
     if (ret == 0)
       break;
@@ -130,10 +133,10 @@ int main(unsigned argc, char * unsafe argv[argc])
   assert(argc == 4);
 
   FILE * movable bin_file = fopen((char*)argv[1], "rb");
-  int block_size = 0;
+  size_t block_size = 0;
   int upgrade_address = 0;
   unsafe {
-    sscanf(argv[2], "%d", &block_size);
+    sscanf(argv[2], "%zu", &block_size);
     sscanf(argv[3], "%d", &upgrade_address);
   }
 

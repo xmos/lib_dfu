@@ -9,6 +9,7 @@
 #define DEBUG_UNIT DFU
 #define DEBUG_PRINT_ENABLE_DFU 0
 #include "debug_print.h"
+#include "xassert.h"
 
 #include "dfu_buffer_converter.h"
 #include "dfu_flash.h"
@@ -156,12 +157,12 @@ static void sub_transition_dnload(enum dnload_sub_state new)
   dnload.sub_state = new;
 }
 
-static bool is_address_in_an_upgrade_slot(int address)
+static bool is_address_in_an_upgrade_slot(unsigned address)
 {
-  if (address >= upgrade_slots.boot && address < flash_get_data_partition_base())
+  if (address >= upgrade_slots.boot && address < (unsigned)flash_get_data_partition_base())
     return true;
 
-  if (address >= upgrade_slots.data && address < flash_get_size())
+  if (address >= upgrade_slots.data && address < (unsigned)flash_get_size())
     return true;
 
   return false;
@@ -287,6 +288,8 @@ static void request_with_arguments(enum dfu_request request,
                                    char (&?read_block)[DFU_BLOCK_SIZE_MAX_BYTES],
                                    int block_size_bytes, int write_block_num)
 {
+  UNUSED(read_block);
+
 #if DEBUG_PRINT_ENABLE_DFU
   debug_printf("DFU: %s", request_str(request));
   if (request == DFU_DNLOAD)
@@ -294,7 +297,7 @@ static void request_with_arguments(enum dfu_request request,
   else
     debug_printf("\n");
 #endif
-  enum dfu_status status;
+  enum dfu_status rqst_status;
   int ret;
 
   switch (state) {
@@ -329,9 +332,9 @@ static void request_with_arguments(enum dfu_request request,
     case DFU_DNLOAD_SYNC:
       if (request == DFU_GETSTATUS) {
         bool busy = false;
-        status = getstatus_from_dnload(busy);
-        if (status != DFU_OK) {
-          error_condition(status, 0);
+        rqst_status = getstatus_from_dnload(busy);
+        if (rqst_status != DFU_OK) {
+          error_condition(rqst_status, 0);
         }
         else {
           if (busy) {
@@ -348,9 +351,9 @@ static void request_with_arguments(enum dfu_request request,
     case DFU_MANIFEST_SYNC:
       if (request == DFU_GETSTATUS) {
         bool busy = false;
-        status = getstatus_from_dnload(busy);
-        if (status != DFU_OK) {
-          error_condition(status, 0);
+        rqst_status = getstatus_from_dnload(busy);
+        if (rqst_status != DFU_OK) {
+          error_condition(rqst_status, 0);
         }
         else {
           if (busy) {

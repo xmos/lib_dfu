@@ -13,14 +13,14 @@
 
 #include "dfu_flash.h"
 
-extern const fl_QuadDeviceSpec * unsafe g_flashAccess;
+// extern const fl_QuadDeviceSpec * unsafe g_flashAccess;
 
-fl_QuadDeviceSpec spec[] = { // IS25LQ016B
-  { 0, 256, 8192, 3, 8, 0x9F, 0, 3, 0x9D4015, 0x20, 4096, 0x06, 0x04,
-    PROT_TYPE_NONE, {{0,0},{0x00,0x00}}, 0x02, 0xEB, 1,
-    SECTOR_LAYOUT_REGULAR, {4096,{0,{0}}}, 0x05, 0x01, 0x01
-  }
-};
+// fl_QuadDeviceSpec spec[] = { // IS25LQ016B
+//   { 0, 256, 8192, 3, 8, 0x9F, 0, 3, 0x9D4015, 0x20, 4096, 0x06, 0x04,
+//     PROT_TYPE_NONE, {{0,0},{0x00,0x00}}, 0x02, 0xEB, 1,
+//     SECTOR_LAYOUT_REGULAR, {4096,{0,{0}}}, 0x05, 0x01, 0x01
+//   }
+// };
 
 int fl_getSectorContaining(unsigned address)
 {
@@ -70,16 +70,25 @@ void fl_int_write(unsigned char cmd,
   // nothing
 }
 
+void fl_int_eraseSector(unsigned char cmd, unsigned sectorAddress)
+{
+  (void) cmd;
+  (void) sectorAddress;
+  // nothing
+}
+
+int fl_readImagePage(unsigned char page[])
+{
+  UNUSED(page);
+  return 0;
+}
+
 int main(void)
 {
   int ret;
   char page[256] = {0};
   const int good[] = {4096, 16384, 1048575, 1052672, 2097151};
   const int bad[] = {0, 1, 4095, 1048576, 1048577, 1052671, 2097152, 8388608};
-
-  unsafe {
-    g_flashAccess = &spec[0];
-  }
 
   for (int i = 0; i < sizeof(good) / sizeof(int); i++) {
     debug_printf("%d (good)\n", good[i]);

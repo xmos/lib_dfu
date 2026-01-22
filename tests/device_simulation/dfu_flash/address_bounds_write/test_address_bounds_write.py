@@ -1,12 +1,14 @@
 # Copyright 2019-2026 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
-import subprocess, os
+import os
+import subprocess
+
 
 def test_address_bounds_write():
     home = os.path.dirname(os.path.abspath(__file__))
     try:
-        cmd = ['xsim', os.path.join(home, 'bin', 'address_bounds_write.xe')]
-        output = subprocess.check_call(cmd)
+        cmd = ['xsim', os.path.join(home, 'bin', 'address_bounds_write_test.xe')]
+        _ = subprocess.check_call(cmd)
     except subprocess.CalledProcessError as e:
         msg = '''Error! Simulator failed
                \ncmd: %s
@@ -14,7 +16,3 @@ def test_address_bounds_write():
                \nreturn_code: %d'''\
                % (str(e.cmd), e.output, e.returncode)
         raise Exception(msg)
-
-if __name__ == "__main__":
-    print('test_address_bounds_write')
-    test_address_bounds_write()

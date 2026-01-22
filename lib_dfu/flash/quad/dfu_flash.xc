@@ -7,10 +7,19 @@
 #include "dfu_flash.h"
 
 #include <quadflash.h>
+#include <quadflashlib.h>
 #include <safestring.h>
 
 #include "dfu_flash_result.h"
 #include "dfu_types.h"
+
+// TEMP - "extra"
+int fl_getSectorEndAddress(int sectorNum);
+void fl_int_eraseSector(unsigned char cmd, unsigned int sectorAddress);
+int fl_getSectorContaining(unsigned address);
+
+void fl_int_write(unsigned char cmd,unsigned int pageAddress, const unsigned char data[num_bytes],unsigned int num_bytes);
+
 
 enum flash_locate_boot_upgrade_slot_result flash_locate_boot_upgrade_slot(unsigned &address) {
   fl_BootImageInfo info;
@@ -42,20 +51,21 @@ enum flash_locate_data_upgrade_slot_result flash_locate_data_upgrade_slot(unsign
 
 enum flash_erase_sector_async_result flash_erase_sector_async(unsigned address) {
   // protect first sector of boot partition
-  // if (address >= fl_getSectorAddress(0) && address < fl_getSectorEndAddress(0))
-  //   return FLASH_ERASE_SECTOR_ASYNC_IN_FIRST_BOOT_SECTOR;
+  if (address >= fl_getSectorAddress(0) && (address < fl_getSectorEndAddress(0)))
+    return FLASH_ERASE_SECTOR_ASYNC_IN_FIRST_BOOT_SECTOR;
 
-  // // protect first sector of data partition
-  // if (address >= fl_getDataPartitionBase() &&
-  //     address < fl_getSectorEndAddress(fl_getSectorContaining(fl_getDataPartitionBase())))
-  //   return FLASH_ERASE_SECTOR_ASYNC_IN_FIRST_DATA_SECTOR;
+  // protect first sector of data partition
+  if (address >= fl_getDataPartitionBase() &&
+      address < fl_getSectorEndAddress(fl_getSectorContaining(fl_getDataPartitionBase())))
+    return FLASH_ERASE_SECTOR_ASYNC_IN_FIRST_DATA_SECTOR;
 
-  // // disallow wrap-around flash address in order to protect boot partition
-  // if (address >= fl_getFlashSize()) return FLASH_ERASE_SECTOR_ASYNC_OUTSIDE_FLASH_LIMITS;
+  // disallow wrap-around flash address in order to protect boot partition
+  if (address >= fl_getFlashSize()) return FLASH_ERASE_SECTOR_ASYNC_OUTSIDE_FLASH_LIMITS;
 
-  // if (fl_setWritability(1) != 0) return FLASH_ERASE_SECTOR_ASYNC_SET_WRITABILITY_FAILED;
+  if (fl_setWritability(1) != 0) return FLASH_ERASE_SECTOR_ASYNC_SET_WRITABILITY_FAILED;
 
   // unsafe { fl_int_eraseSector(g_flashAccess->sectorEraseCommand, address); }
+  unsafe { fl_int_eraseSector(1, address); }
 
   return FLASH_ERASE_SECTOR_ASYNC_SUCCESS;
 }
@@ -95,23 +105,24 @@ enum flash_set_write_disable_result flash_set_write_disable(void) {
 }
 
 enum flash_write_page_async_result flash_write_page_async(unsigned address, const char page[]) {
-  // int page_size = fl_getPageSize();
+  int page_size = fl_getPageSize();
 
-  // // protect first sector of boot partition
-  // if (address >= fl_getSectorAddress(0) && address < fl_getSectorEndAddress(0))
-  //   return FLASH_WRITE_PAGE_ASYNC_IN_FIRST_BOOT_SECTOR;
+  // protect first sector of boot partition
+  if (address >= fl_getSectorAddress(0) && address < fl_getSectorEndAddress(0))
+    return FLASH_WRITE_PAGE_ASYNC_IN_FIRST_BOOT_SECTOR;
 
-  // // protect first sector of data partition
-  // if (address >= fl_getDataPartitionBase() &&
-  //     address < fl_getSectorEndAddress(fl_getSectorContaining(fl_getDataPartitionBase())))
-  //   return FLASH_WRITE_PAGE_ASYNC_IN_FIRST_DATA_SECTOR;
+  // protect first sector of data partition
+  if (address >= fl_getDataPartitionBase() &&
+      address < fl_getSectorEndAddress(fl_getSectorContaining(fl_getDataPartitionBase())))
+    return FLASH_WRITE_PAGE_ASYNC_IN_FIRST_DATA_SECTOR;
 
-  // // disallow wrap-around flash address in order to protect boot partition
-  // if (address >= fl_getFlashSize()) return FLASH_WRITE_PAGE_ASYNC_OUTSIDE_FLASH_LIMITS;
+  // disallow wrap-around flash address in order to protect boot partition
+  if (address >= fl_getFlashSize()) return FLASH_WRITE_PAGE_ASYNC_OUTSIDE_FLASH_LIMITS;
 
-  // if (fl_setWritability(1) != 0) return FLASH_WRITE_PAGE_ASYNC_SET_WRITABILITY_FAILED;
+  if (fl_setWritability(1) != 0) return FLASH_WRITE_PAGE_ASYNC_SET_WRITABILITY_FAILED;
 
   // unsafe { fl_int_write(g_flashAccess->programPageCommand, address, page, page_size); }
+  unsafe { fl_int_write(1, address, page, page_size); }
 
   return FLASH_WRITE_PAGE_ASYNC_SUCCESS;
 }

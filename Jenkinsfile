@@ -19,7 +19,7 @@ pipeline {
         )
         string(
             name: 'INFR_APPS_VERSION',
-            defaultValue: 'v3.3.0',
+            defaultValue: 'v3.2.1',
             description: 'The infr_apps version'
         )
         choice(
@@ -143,6 +143,12 @@ pipeline {
                                     // xcoreBuild(archiveBins: false)
                                     // Use the TEST_LEVEL parameter to control the test coverage
                                     runPytest("--level=${params.TEST_LEVEL} -k host")
+                                    
+                                    // Device simulation tests
+                                    dir("device_simulation/buffer_converter") {
+                                        xcoreBuild(archiveBins: false)
+                                        runPytest()
+                                    }
                                 }
                             }
                         }

@@ -2,6 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <print.h>
 #include <quadflash.h>
+#include <quadflashlib.h>
 
 #define XASSERT_ENABLE_DEBUG 1
 #define XASSERT_ENABLE_LINE_NUMBERS 1
@@ -13,14 +14,27 @@
 
 #include "dfu_flash.h"
 
-extern const fl_QuadDeviceSpec * unsafe g_flashAccess;
 
-fl_QuadDeviceSpec spec[] = { // IS25LQ016B
-  { 0, 256, 8192, 3, 8, 0x9F, 0, 3, 0x9D4015, 0x20, 4096, 0x06, 0x04,
-    PROT_TYPE_NONE, {{0,0},{0x00,0x00}}, 0x02, 0xEB, 1,
-    SECTOR_LAYOUT_REGULAR, {4096,{0,{0}}}, 0x05, 0x01, 0x01
-  }
-};
+
+unsigned fl_getPageSize(void)
+{
+  return 256;
+}
+
+int fl_readImagePage(unsigned char page[])
+{
+  UNUSED(page);
+  return 0;
+}
+
+// extern const fl_QuadDeviceSpec * unsafe g_flashAccess;
+
+// fl_QuadDeviceSpec spec[] = { // IS25LQ016B
+//   { 0, 256, 8192, 3, 8, 0x9F, 0, 3, 0x9D4015, 0x20, 4096, 0x06, 0x04,
+//     PROT_TYPE_NONE, {{0,0},{0x00,0x00}}, 0x02, 0xEB, 1,
+//     SECTOR_LAYOUT_REGULAR, {4096,{0,{0}}}, 0x05, 0x01, 0x01, 0, 0
+//   }
+// };
 
 int fl_getSectorContaining(unsigned address)
 {
@@ -44,6 +58,7 @@ int fl_getNumSectors(void)
 
 int fl_setWritability(int enable)
 {
+  (void) enable;
   return 0;
 }
 
@@ -59,6 +74,8 @@ unsigned fl_getFlashSize(void)
 
 void fl_int_eraseSector(unsigned char cmd, unsigned sectorAddress)
 {
+  (void) cmd;
+  (void) sectorAddress;
   // nothing
 }
 
@@ -67,10 +84,6 @@ int main(void)
   int ret;
   const int good[] = {4096, 16384, 1048575, 1052672, 2097151};
   const int bad[] = {0, 1, 4095, 1048576, 1048577, 1052671, 2097152, 8388608};
-
-  unsafe {
-    g_flashAccess = &spec[0];
-  }
 
   for (int i = 0; i < sizeof(good) / sizeof(int); i++) {
     debug_printf("%d (good)\n", good[i]);
