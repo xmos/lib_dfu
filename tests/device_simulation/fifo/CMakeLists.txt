@@ -7,6 +7,8 @@ set(APP_HW_TARGET          XK-EVK-XU316)
 
 set(APP_DEPENDENT_MODULES  "lib_dfu" "lib_unity(2.6.1)")
 
+set(DFU_FLASH_UNIT_TEST ON)
+
 set(APP_COMPILER_FLAGS      -O3
                             -report
                             -Wall
