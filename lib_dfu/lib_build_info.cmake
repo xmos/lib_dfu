@@ -27,4 +27,6 @@ endif()
 # -mcmodel=large? 
 set(LIB_COMPILER_FLAGS      -Os -g -report -lquadflash -Wall -Wextra)
 
+set(LIB_OPTIONAL_HEADERS    dfu_conf.h)
+
 XMOS_REGISTER_MODULE()

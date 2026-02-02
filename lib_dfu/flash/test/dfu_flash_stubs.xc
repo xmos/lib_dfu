@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <xassert.h>
 
+#include "dfu.h"
 #include "dfu_flash.h"
 #include "dfu_flash_result.h"
 

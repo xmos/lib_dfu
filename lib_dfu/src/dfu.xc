@@ -30,7 +30,7 @@ static struct {
 
 static struct {
   int next_page_address;
-  char page[DFU_PAGE_SIZE_MAX_BYTES];
+  char page[DFU_FLASH_PAGE_SIZE_BYTES];
   bool page_ready;
   enum dnload_sub_state {
     DNLOAD_SYNC,
@@ -284,8 +284,8 @@ static int dnload_block(const char write_block[], int block_num,
 }
 
 static void request_with_arguments(enum dfu_request request,
-                                   const char (&?write_block)[DFU_BLOCK_SIZE_MAX_BYTES],
-                                   char (&?read_block)[DFU_BLOCK_SIZE_MAX_BYTES],
+                                   const char (&?write_block)[DFU_TRANSFER_SIZE_BYTES],
+                                   char (&?read_block)[DFU_TRANSFER_SIZE_BYTES],
                                    int block_size_bytes, int write_block_num)
 {
   UNUSED(read_block);
@@ -470,7 +470,7 @@ void dfu_timeout_detach(void)
 }
 
 void dfu_dnload(unsigned short block_num, size_t block_size_bytes,
-                const char block[DFU_BLOCK_SIZE_MAX_BYTES])
+                const char block[DFU_TRANSFER_SIZE_BYTES])
 {
   request_with_arguments(DFU_DNLOAD, block, null, block_size_bytes, block_num);
 }
@@ -493,7 +493,7 @@ int dfu_locate_upgrade_slots(void)
 
 bool dfu_is_flash_suitable(const fl_QuadDeviceSpec spec[1])
 {
-  if (spec[0].pageSize > DFU_PAGE_SIZE_MAX_BYTES)
+  if (spec[0].pageSize > DFU_FLASH_PAGE_SIZE_BYTES)
     return false;
 
   if (spec[0].sectorLayout != SECTOR_LAYOUT_REGULAR)

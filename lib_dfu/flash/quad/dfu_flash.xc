@@ -11,7 +11,7 @@
 #include <safestring.h>
 
 #include "dfu_flash_result.h"
-#include "dfu_types.h"
+#include "dfu.h"
 
 // TEMP - "extra"
 int fl_getSectorEndAddress(int sectorNum);
@@ -87,7 +87,7 @@ bool flash_is_sector_erased(unsigned address) {
   // unsigned page_address = address;
   // int page_size = fl_getPageSize();
   // while (fl_getSectorContaining(page_address) == fl_getSectorAtOrAfter(address)) {
-  //   char page[DFU_PAGE_SIZE_MAX_BYTES];
+  //   char page[DFU_FLASH_PAGE_SIZE_BYTES];
   //   fl_readPage(page_address, page);
   //   for (int i = 0; i < page_size; i++) {
   //     if (page[i] != 0xFF) return false;
@@ -129,7 +129,7 @@ enum flash_write_page_async_result flash_write_page_async(unsigned address, cons
 
 bool flash_verify_page(unsigned address, const char page[]) {
   int page_size = fl_getPageSize();
-  char verify[DFU_PAGE_SIZE_MAX_BYTES];
+  char verify[DFU_FLASH_PAGE_SIZE_BYTES];
 
   fl_readImagePage(verify);
   return safememcmp(verify, page, page_size) == 0;

@@ -58,7 +58,7 @@ FILE * movable write(FILE * movable bin_file, int block_size,
   struct dfu_getstatus ret;
   int block_count = 0;
   size_t read;
-  char block[DFU_BLOCK_SIZE_MAX_BYTES];
+  char block[DFU_TRANSFER_SIZE_BYTES];
 
   while (!feof(bin_file)) {
     printintln(block_count);
