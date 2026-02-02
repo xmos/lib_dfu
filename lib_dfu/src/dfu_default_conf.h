@@ -10,7 +10,12 @@
 #endif
 
 #ifdef __DOXYGEN__
-/** User defined flash device specification for DFU to use */
+/** User defined flash device specification for DFU to use.
+ * 
+ * If not defined, the default flash device list in dfu_flashlib_user.c is used.
+ * This should be defined as a fl_DeviceSpec or fl_QuadDeviceSpec structure,
+ * depending on whether DFU_QUAD_SPI_FLASH is set.
+ */
 #define DFU_USER_FLASH_DEVICE
 #endif
 
