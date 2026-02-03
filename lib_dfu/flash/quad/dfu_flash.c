@@ -6,22 +6,109 @@
 
 #include "dfu_flash.h"
 
-#include <quadflash.h>
 #include <quadflashlib.h>
 #include <safestring.h>
 
-#include "dfu_flash_result.h"
 #include "dfu.h"
+
+
+
+struct flash_seesion {
+  int device_open;
+  fl_BootImageInfo factory_image;
+  fl_BootImageInfo upgrade_image;
+
+  int upgrade_image_valid;
+};
+
+static struct flash_seesion flash_session;
+
+int flash_cmd_enable_ports() __attribute__ ((weak));
+int flash_cmd_enable_ports() {
+  return 0;
+}
+
+int flash_cmd_disable_ports() __attribute__ ((weak));
+int flash_cmd_disable_ports() {
+  return 0;
+}
+
+void DFUCustomFlashEnable() __attribute__ ((weak));
+void DFUCustomFlashEnable()
+{
+    return;
+}
+
+void DFUCustomFlashDisable() __attribute__ ((weak));
+void DFUCustomFlashDisable()
+{
+    return;
+}
+
+/* Returns non-zero for error */
+int flash_cmd_init(void)
+{
+    fl_BootImageInfo image;
+
+    if (!flash_session.device_open)
+    {
+        if (flash_cmd_enable_ports())
+            flash_session.device_open = 1;
+    }
+
+    if (!flash_session.device_open)
+    {
+        return 1;
+    }
+
+#if defined(DFU_QUAD_SPI_FLASH) && (DFU_QUAD_SPI_FLASH == 0)
+    // Disable flash protection
+    fl_setProtection(0);
+#endif
+
+    if (fl_getFactoryImage(&image) != 0)
+    {
+        return 1;
+    }
+
+    flash_session.factory_image = image;
+
+    if (fl_getNextBootImage(&image) == 0)
+    {
+        flash_session.upgrade_image_valid = 1;
+        flash_session.upgrade_image = image;
+    }
+
+     return 0;
+}
+
+int flash_cmd_deinit(void)
+{
+    if (!flash_session.device_open)
+        return 0;
+
+    flash_cmd_disable_ports();
+    flash_session.device_open = 0;
+    return 0;
+}
+
+
+
+
+
+
+
+#include "dfu_flash_result.h"
 
 // TEMP - "extra"
 int fl_getSectorEndAddress(int sectorNum);
 void fl_int_eraseSector(unsigned char cmd, unsigned int sectorAddress);
 int fl_getSectorContaining(unsigned address);
 
-void fl_int_write(unsigned char cmd,unsigned int pageAddress, const unsigned char data[num_bytes],unsigned int num_bytes);
+// void fl_int_write(unsigned char cmd,unsigned int pageAddress, const unsigned char data[num_bytes],unsigned int num_bytes);
 
 
-enum flash_locate_boot_upgrade_slot_result flash_locate_boot_upgrade_slot(unsigned &address) {
+enum flash_locate_boot_upgrade_slot_result flash_locate_boot_upgrade_slot(unsigned *address) {
   fl_BootImageInfo info;
 
   // if (fl_getFactoryImage(info) != 0) return FLASH_LOCATE_BOOT_UPGRADE_SLOT_GET_FACTORY_IMAGE_FAILED;
@@ -35,7 +122,7 @@ enum flash_locate_boot_upgrade_slot_result flash_locate_boot_upgrade_slot(unsign
   return FLASH_LOCATE_BOOT_UPGRADE_SLOT_SUCCESS;
 }
 
-enum flash_locate_data_upgrade_slot_result flash_locate_data_upgrade_slot(unsigned &address) {
+enum flash_locate_data_upgrade_slot_result flash_locate_data_upgrade_slot(unsigned *address) {
   // fl_DataImageInfo info;
 
   // if (fl_getFactoryDataImageNoChecksum(info) != 0)
@@ -65,7 +152,7 @@ enum flash_erase_sector_async_result flash_erase_sector_async(unsigned address) 
   if (fl_setWritability(1) != 0) return FLASH_ERASE_SECTOR_ASYNC_SET_WRITABILITY_FAILED;
 
   // unsafe { fl_int_eraseSector(g_flashAccess->sectorEraseCommand, address); }
-  unsafe { fl_int_eraseSector(1, address); }
+  fl_int_eraseSector(1, address);
 
   return FLASH_ERASE_SECTOR_ASYNC_SUCCESS;
 }
@@ -122,7 +209,7 @@ enum flash_write_page_async_result flash_write_page_async(unsigned address, cons
   if (fl_setWritability(1) != 0) return FLASH_WRITE_PAGE_ASYNC_SET_WRITABILITY_FAILED;
 
   // unsafe { fl_int_write(g_flashAccess->programPageCommand, address, page, page_size); }
-  unsafe { fl_int_write(1, address, page, page_size); }
+  // unsafe { fl_int_write(1, address, page, page_size); }
 
   return FLASH_WRITE_PAGE_ASYNC_SUCCESS;
 }

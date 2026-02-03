@@ -10,7 +10,7 @@
 #include "dfu_flash_result.h"
 
 enum flash_locate_boot_upgrade_slot_result
-  flash_locate_boot_upgrade_slot(unsigned &address)
+  flash_locate_boot_upgrade_slot(unsigned *address)
 {
   UNUSED(address);
   
@@ -19,7 +19,7 @@ enum flash_locate_boot_upgrade_slot_result
 }
 
 enum flash_locate_data_upgrade_slot_result
-  flash_locate_data_upgrade_slot(unsigned &address)
+  flash_locate_data_upgrade_slot(unsigned *address)
 {
   UNUSED(address);
   
