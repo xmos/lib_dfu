@@ -73,11 +73,10 @@ int fifo_is_full(REFERENCE_PARAM(struct fifo, fifo));
 
 /** Get number of bytes stored in fifo
  * \param fifo Pointer to fifo structure
- * \return fifo_status_data structure containing status and current size
- * \retval FIFO_OK on success, data contains current size
+ * \retval count number of bytes on success
  * \retval FIFO_BAD_PARAM if fifo pointer is null
  */
-struct fifo_status_data fifo_size(REFERENCE_PARAM(struct fifo, fifo));
+int fifo_size(REFERENCE_PARAM(struct fifo, fifo));
 
 /* Block operations */
 /** Enqueue block of bytes into fifo

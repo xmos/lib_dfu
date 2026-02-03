@@ -73,14 +73,11 @@ int fifo_is_full(struct fifo *fifo) {
   return (fifo->count == fifo->max);
 }
 
-struct fifo_status_data fifo_size(struct fifo *fifo) {
-  struct fifo_status_data result = {FIFO_BAD_PARAM, 0};
+int fifo_size(struct fifo *fifo) {
   if (fifo == NULL) {
-    return result;
+    return FIFO_BAD_PARAM;
   }
-  result.data = fifo->count;
-  result.status = FIFO_OK;
-  return result;
+  return fifo->count;
 }
 
 /* Block operations */

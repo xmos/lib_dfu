@@ -17,8 +17,6 @@
 enum flash_erase_sector_async_result
   flash_erase_sector_async(unsigned address);
 
-int flash_get_page_size(void);
-
 bool flash_is_busy(void);
 
 bool flash_is_first_whole_page_in_sector(unsigned address);
@@ -44,5 +42,13 @@ int flash_get_data_partition_base(void);
 int flash_get_page_size(void);
 
 int flash_get_size(void);
+
+
+//////
+
+// init
+// erase
+// write
+// read
 
 #endif

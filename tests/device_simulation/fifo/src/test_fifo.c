@@ -26,9 +26,7 @@ void test_fifo_init_reports_empty(void) {
 void test_fifo_init_reports_size_zero(void) {
     int status = fifo_init(&test_fifo, fifo_buffer, sizeof(fifo_buffer));
     TEST_ASSERT_EQUAL(FIFO_OK, status);
-    struct fifo_status_data size_result = fifo_size(&test_fifo);
-    TEST_ASSERT_EQUAL(FIFO_OK, size_result.status);
-    TEST_ASSERT_EQUAL(0, size_result.data);
+    TEST_ASSERT_EQUAL(0, fifo_size(&test_fifo));
 }
 
 void test_fifo_init_with_null_buffer_reports_error(void) {
@@ -89,9 +87,7 @@ void test_fifo_size_reports_correct_size(void) {
     fifo_init(&test_fifo, fifo_buffer, sizeof(fifo_buffer));
     fifo_enqueue(&test_fifo, 0x55);
     fifo_enqueue(&test_fifo, 0xAA);
-    struct fifo_status_data result = fifo_size(&test_fifo);
-    TEST_ASSERT_EQUAL(FIFO_OK, result.status);
-    TEST_ASSERT_EQUAL(2, result.data);
+    TEST_ASSERT_EQUAL(2, fifo_size(&test_fifo));
 }
 
 /* Block operations */
@@ -144,10 +140,7 @@ void test_fifo_block_enqueue_wrap_reports_OK_and_correct_size(void) {
     uint8_t data_to_enqueue1[4] = {0x11, 0x22, 0x33, 0x44};
     int status = fifo_block_enqueue(&block_test_fifo, data_to_enqueue1, sizeof(data_to_enqueue1));
     TEST_ASSERT_EQUAL(FIFO_OK, status);
-    
-    struct fifo_status_data size_result = fifo_size(&block_test_fifo);
-    TEST_ASSERT_EQUAL(FIFO_OK, size_result.status);
-    TEST_ASSERT_EQUAL(sizeof(data_to_enqueue1), size_result.data);
+    TEST_ASSERT_EQUAL(sizeof(data_to_enqueue1), fifo_size(&block_test_fifo));
 }
 
 void test_fifo_block_enqueue_wrap_reports_correct_data(void) {
