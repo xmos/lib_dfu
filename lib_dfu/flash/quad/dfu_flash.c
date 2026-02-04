@@ -147,9 +147,11 @@ enum flash_locate_data_upgrade_slot_result flash_locate_data_upgrade_slot(unsign
 }
 
 bool flash_is_first_whole_page_in_sector(unsigned address) {
-  int page_size = (int)fl_getPageSize();
+  unsigned page_size = fl_getPageSize();
 
-  if (address < page_size) return true;
+  if (address < page_size) {
+    return true;
+  }
 
   return false;  // TODO Fix
 }
@@ -162,38 +164,18 @@ bool flash_is_sector_erased(unsigned address) {
 enum flash_set_write_disable_result flash_set_write_disable(void) { return FLASH_SET_WRITE_DISABLE_ERROR; }
 
 bool flash_verify_page(unsigned address, const char page[]) {
-  int page_size = (int)fl_getPageSize();
-  char verify[DFU_FLASH_PAGE_SIZE_BYTES];
+  (void)address;
+  unsigned int page_size = fl_getPageSize();
+  unsigned char verify[DFU_FLASH_PAGE_SIZE_BYTES];
 
   fl_readImagePage(verify);
-  return safememcmp(verify, page, page_size) == 0;
+  return safememcmp(verify, (const unsigned char *)page, page_size) == 0;
 }
 
 // No data partition support
 int flash_get_data_partition_base(void) { return -1; }
 
-void flash_cmd_read_page(unsigned char *data)
-{
-    // if (!upgrade_image_valid)
-    // {
-    //     *(unsigned int *)data = 1;
-    //     return;
-    // }
-
-    // if (*(unsigned int *)data == 0)
-    // {
-    //     fl_startImageRead(&upgrade_image);
-    // }
-
-    // current_flash_subpage_index = 0;
-
-    // if (fl_readImagePage(current_flash_page_data) == 0)
-    // {
-    //     *(unsigned int *)data = 0;
-    //  }
-    // else
-    // {
-        *(unsigned int *)data = 1;
-    // }
-    return;
+void flash_cmd_read_page(unsigned char *data) {
+  *(unsigned int *)data = 1;
+  return;
 }
