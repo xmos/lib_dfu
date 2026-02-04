@@ -191,7 +191,8 @@ static enum dfu_status getstatus_from_dnload(bool &busy)
 
           sub_transition_dnload(DNLOAD_WRITING_PAGE);
 
-          if (flash_write_page_async(dnload.next_page_address, dnload.page) != 0)
+          // TODO - fix flash
+          if (flash_write_page_async(dnload.page) != 0)
             return ERR_WRITE;
         }
       }
@@ -210,7 +211,7 @@ static enum dfu_status getstatus_from_dnload(bool &busy)
 
         sub_transition_dnload(DNLOAD_WRITING_PAGE);
 
-        if (flash_write_page_async(dnload.next_page_address, dnload.page) != 0)
+        if (flash_write_page_async(dnload.page) != 0)
           return ERR_WRITE;
       }
       break;

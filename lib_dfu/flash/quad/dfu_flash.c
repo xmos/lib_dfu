@@ -93,22 +93,43 @@ enum flash_status flash_erase_sector_async(unsigned address) {
     return DFU_FLASH_ERASE_ERROR;
   } else if (ret > 0) {
     return DFU_FLASH_BUSY;
+  } else {
+    flash_session.upgrade_image_valid = 0;
+    return DFU_FLASH_OK;
   }
-  return ret;
 }
 
-enum flash_status flash_write_page_async(unsigned address, const char page[]) {
-  (void)address;
-  (void)page;
-  return DFU_FLASH_BUSY;
+enum flash_status flash_write_page_async(const unsigned char *page) {
+  if (flash_session.upgrade_image_valid) {
+    return DFU_FLASH_ERASE_ERROR;
+
+  } else if (fl_writeImagePage(page) != 0) {
+    return DFU_FLASH_WRITE_ERROR;
+  }
+  return DFU_FLASH_OK;
+}
+
+enum flash_status flash_finalise_write() {
+  if (fl_endWriteImage() != 0) {
+    return DFU_FLASH_WRITE_ERROR;
+  }
+
+  // Sanity check
+  fl_BootImageInfo image = flash_session.factory_image;
+  if (fl_getNextBootImage(&image) != 0) {
+    return DFU_FLASH_OPEN_ERROR;
+  }
+  flash_session.upgrade_image = image;
+  flash_session.upgrade_image_valid = 1;
+  return DFU_FLASH_OK;
 }
 
 enum flash_status flash_read_page(unsigned char *data, int length) {
-  if (!flash_session.upgrade_image_valid) {
-    return DFU_FLASH_READ_NO_IMAGE;
-  } else if (data == NULL || length < DFU_FLASH_PAGE_SIZE_BYTES) {
+  if (data == NULL || length < DFU_FLASH_PAGE_SIZE_BYTES) {
     return DFU_FLASH_BAD_PARAM;
-  } else if (flash_session.reading == 0) {
+  } else if (!flash_session.upgrade_image_valid) {
+    return DFU_FLASH_READ_NO_IMAGE;
+  } else if (!flash_session.reading == 0) {
     int read = fl_startImageRead(&flash_session.upgrade_image);
     if (read != 0) {
       return DFU_FLASH_READ_ERROR;

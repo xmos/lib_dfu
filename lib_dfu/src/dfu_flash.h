@@ -21,6 +21,7 @@ enum flash_status {
   DFU_FLASH_READ_NO_IMAGE = -4,
   DFU_FLASH_BAD_PARAM = -5,
   DFU_FLASH_READ_ERROR = -6,
+  DFU_FLASH_WRITE_ERROR = -7,
 };
 
 enum flash_status flash_cmd_enable_ports();
@@ -40,9 +41,11 @@ enum flash_status flash_cmd_deinit(void);
 
 enum flash_status flash_erase_sector_async(unsigned address);
 
-enum flash_status flash_write_page_async(unsigned address, const char page[]);
+enum flash_status flash_write_page_async(const unsigned char page[]);
 
-enum flash_status flash_read_page(unsigned char *data, int length);
+enum flash_status flash_finalise_write();
+
+enum flash_status flash_read_page(REFERENCE_PARAM(unsigned char, data), int length);
 
 bool flash_is_busy(void);
 
