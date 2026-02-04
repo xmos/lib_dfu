@@ -12,12 +12,47 @@
 #define _Bool int
 #include <stdbool.h>
 
-#include "dfu_flash_result.h"
+enum flash_status {
+  DFU_FLASH_BUSY = 1,
+  DFU_FLASH_OK = 0,
+  DFU_FLASH_OPEN_ERROR = -1,
+  DFU_FLASH_ERASE_ERROR = -2,
+  DFU_FLASH_GET_FACTORY_IMAGE_FAILED = -3,
+  DFU_FLASH_READ_NO_IMAGE = -4,
+  DFU_FLASH_BAD_PARAM = -5,
+  DFU_FLASH_READ_ERROR = -6,
+};
 
-enum flash_erase_sector_async_result
-  flash_erase_sector_async(unsigned address);
+enum flash_status flash_cmd_enable_ports();
+
+enum flash_status flash_cmd_disable_ports();
+
+void DFUCustomFlashEnable();
+
+void DFUCustomFlashDisable();
+
+enum flash_status flash_cmd_init(void);
+
+enum flash_status flash_cmd_deinit(void);
+
+
+
+
+enum flash_status flash_erase_sector_async(unsigned address);
+
+enum flash_status flash_write_page_async(unsigned address, const char page[]);
+
+enum flash_status flash_read_page(unsigned char *data, int length);
 
 bool flash_is_busy(void);
+
+int flash_get_page_size(void);
+
+int flash_get_size(void);
+
+
+#include "dfu_flash_result.h"
+
 
 bool flash_is_first_whole_page_in_sector(unsigned address);
 
@@ -34,14 +69,9 @@ enum flash_set_write_disable_result
 
 bool flash_verify_page(unsigned address, const char page[]);
 
-enum flash_write_page_async_result
-  flash_write_page_async(unsigned address, const char page[]);
-
 int flash_get_data_partition_base(void);
 
-int flash_get_page_size(void);
-
-int flash_get_size(void);
+void flash_cmd_read_page(unsigned char *data);
 
 
 //////

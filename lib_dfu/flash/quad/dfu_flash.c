@@ -11,211 +11,158 @@
 
 #include "dfu.h"
 
-
-
 struct flash_seesion {
   int device_open;
   fl_BootImageInfo factory_image;
   fl_BootImageInfo upgrade_image;
 
   int upgrade_image_valid;
+  int reading;
 };
 
 static struct flash_seesion flash_session;
 
-int flash_cmd_enable_ports() __attribute__ ((weak));
-int flash_cmd_enable_ports() {
-  return 0;
-}
+enum flash_status flash_cmd_enable_ports() __attribute__((weak));
+enum flash_status flash_cmd_enable_ports() { return DFU_FLASH_OPEN_ERROR; }
 
-int flash_cmd_disable_ports() __attribute__ ((weak));
-int flash_cmd_disable_ports() {
-  return 0;
-}
+enum flash_status flash_cmd_disable_ports() __attribute__((weak));
+enum flash_status flash_cmd_disable_ports() { return DFU_FLASH_OPEN_ERROR; }
 
-void DFUCustomFlashEnable() __attribute__ ((weak));
-void DFUCustomFlashEnable()
-{
-    return;
-}
+void DFUCustomFlashEnable() __attribute__((weak));
+void DFUCustomFlashEnable() { return; }
 
-void DFUCustomFlashDisable() __attribute__ ((weak));
-void DFUCustomFlashDisable()
-{
-    return;
-}
+void DFUCustomFlashDisable() __attribute__((weak));
+void DFUCustomFlashDisable() { return; }
 
 /* Returns non-zero for error */
-int flash_cmd_init(void)
-{
-    fl_BootImageInfo image;
+enum flash_status flash_cmd_init(void) {
+  fl_BootImageInfo image;
 
-    if (!flash_session.device_open)
-    {
-        if (flash_cmd_enable_ports())
-            flash_session.device_open = 1;
-    }
+  flash_session.reading = 0;
 
-    if (!flash_session.device_open)
-    {
-        return 1;
+  if (!flash_session.device_open) {
+    if (flash_cmd_enable_ports() == DFU_FLASH_OK) {
+      flash_session.device_open = 1;
     }
+  }
+
+  if (!flash_session.device_open) {
+    return DFU_FLASH_OPEN_ERROR;
+  }
 
 #if defined(DFU_QUAD_SPI_FLASH) && (DFU_QUAD_SPI_FLASH == 0)
-    // Disable flash protection
-    fl_setProtection(0);
+  // Disable flash protection
+  fl_setProtection(0);
 #endif
 
-    if (fl_getFactoryImage(&image) != 0)
-    {
-        return 1;
-    }
+  if (fl_getFactoryImage(&image) != 0) {
+    return DFU_FLASH_GET_FACTORY_IMAGE_FAILED;
+  }
 
-    flash_session.factory_image = image;
+  flash_session.factory_image = image;
 
-    if (fl_getNextBootImage(&image) == 0)
-    {
-        flash_session.upgrade_image_valid = 1;
-        flash_session.upgrade_image = image;
-    }
+  if (fl_getNextBootImage(&image) == 0) {
+    flash_session.upgrade_image_valid = 1;
+    flash_session.upgrade_image = image;
+  }
 
-     return 0;
+  return DFU_FLASH_OK;
 }
 
-int flash_cmd_deinit(void)
-{
-    if (!flash_session.device_open)
-        return 0;
+enum flash_status flash_cmd_deinit(void) {
+  if (!flash_session.device_open) {
+    return DFU_FLASH_OK;
+  }
 
-    flash_cmd_disable_ports();
-    flash_session.device_open = 0;
-    return 0;
+  flash_cmd_disable_ports();
+  flash_session.device_open = 0;
+  return DFU_FLASH_OK;
 }
 
+// int flash_cmd_start_write_image()
+enum flash_status flash_erase_sector_async(unsigned address) {
+  (void)address;
 
+  int ret = 0;
+  if (flash_session.upgrade_image_valid) {
+    ret = fl_startImageReplace(&flash_session.upgrade_image, FLASH_MAX_UPGRADE_SIZE);
+  } else {
+    ret = fl_startImageAdd(&flash_session.factory_image, FLASH_MAX_UPGRADE_SIZE, 0);
+  }
+  if (ret < 0) {
+    return DFU_FLASH_ERASE_ERROR;
+  } else if (ret > 0) {
+    return DFU_FLASH_BUSY;
+  }
+  return ret;
+}
 
+enum flash_status flash_write_page_async(unsigned address, const char page[]) {
+  (void)address;
+  (void)page;
+  return DFU_FLASH_BUSY;
+}
 
+enum flash_status flash_read_page(unsigned char *data, int length) {
+  if (!flash_session.upgrade_image_valid) {
+    return DFU_FLASH_READ_NO_IMAGE;
+  } else if (data == NULL || length < DFU_FLASH_PAGE_SIZE_BYTES) {
+    return DFU_FLASH_BAD_PARAM;
+  } else if (flash_session.reading == 0) {
+    int read = fl_startImageRead(&flash_session.upgrade_image);
+    if (read != 0) {
+      return DFU_FLASH_READ_ERROR;
+    } else {
+      flash_session.reading = 1;
+    }
+  }
 
+  if (fl_readImagePage(data) != 0) {
+    return DFU_FLASH_READ_ERROR;
+  }
+  return DFU_FLASH_OK;
+}
 
+bool flash_is_busy(void) { return (fl_getBusyStatus() != 0); }
+
+int flash_get_page_size(void) { return (int)fl_getPageSize(); }
+
+int flash_get_size(void) { return (int)fl_getFlashSize(); }
 
 #include "dfu_flash_result.h"
 
 // TEMP - "extra"
-int fl_getSectorEndAddress(int sectorNum);
-void fl_int_eraseSector(unsigned char cmd, unsigned int sectorAddress);
-int fl_getSectorContaining(unsigned address);
-
-// void fl_int_write(unsigned char cmd,unsigned int pageAddress, const unsigned char data[num_bytes],unsigned int num_bytes);
-
+// int fl_getSectorEndAddress(int sectorNum);
+// void fl_int_eraseSector(unsigned char cmd, unsigned int sectorAddress);
+// int fl_getSectorContaining(unsigned address);
 
 enum flash_locate_boot_upgrade_slot_result flash_locate_boot_upgrade_slot(unsigned *address) {
-  fl_BootImageInfo info;
-
-  // if (fl_getFactoryImage(info) != 0) return FLASH_LOCATE_BOOT_UPGRADE_SLOT_GET_FACTORY_IMAGE_FAILED;
-
-  // // rounding up to whole sectors as per fl_initImageWriteState
-  // if (fl_getNextBootImage(info) == 0)
-  //   address = info.startAddress;
-  // else
-  //   address = fl_roundAddressUpToWholeSector(info.startAddress + info.size);
-
+  (void)address;
   return FLASH_LOCATE_BOOT_UPGRADE_SLOT_SUCCESS;
 }
 
 enum flash_locate_data_upgrade_slot_result flash_locate_data_upgrade_slot(unsigned *address) {
-  // fl_DataImageInfo info;
-
-  // if (fl_getFactoryDataImageNoChecksum(info) != 0)
-  //   return FLASH_LOCATE_DATA_UPGRADE_SLOT_GET_FACTORY_DATA_IMAGE_NO_CHECKSUM_FAILED;
-
-  // if (fl_getNextDataImageNoChecksum(info) == 0)
-  //   address = info.startAddress;
-  // else
-  //   address = fl_roundAddressUpToWholeSector(info.startAddress + info.size);
-
+  (void)address;
   return FLASH_LOCATE_DATA_UPGRADE_SLOT_SUCCESS;
 }
 
-enum flash_erase_sector_async_result flash_erase_sector_async(unsigned address) {
-  // protect first sector of boot partition
-  if (address >= fl_getSectorAddress(0) && (address < fl_getSectorEndAddress(0)))
-    return FLASH_ERASE_SECTOR_ASYNC_IN_FIRST_BOOT_SECTOR;
-
-  // protect first sector of data partition
-  if (address >= fl_getDataPartitionBase() &&
-      address < fl_getSectorEndAddress(fl_getSectorContaining(fl_getDataPartitionBase())))
-    return FLASH_ERASE_SECTOR_ASYNC_IN_FIRST_DATA_SECTOR;
-
-  // disallow wrap-around flash address in order to protect boot partition
-  if (address >= fl_getFlashSize()) return FLASH_ERASE_SECTOR_ASYNC_OUTSIDE_FLASH_LIMITS;
-
-  if (fl_setWritability(1) != 0) return FLASH_ERASE_SECTOR_ASYNC_SET_WRITABILITY_FAILED;
-
-  // unsafe { fl_int_eraseSector(g_flashAccess->sectorEraseCommand, address); }
-  fl_int_eraseSector(1, address);
-
-  return FLASH_ERASE_SECTOR_ASYNC_SUCCESS;
-}
-
-bool flash_is_busy(void) { 
-  // return fl_getBusyStatus() != 0; 
-  return false; // TODO Fix
-}
-
 bool flash_is_first_whole_page_in_sector(unsigned address) {
-  int page_size = fl_getPageSize();
+  int page_size = (int)fl_getPageSize();
 
   if (address < page_size) return true;
 
-  return false; // TODO Fix
+  return false;  // TODO Fix
 }
 
 bool flash_is_sector_erased(unsigned address) {
-  // unsigned page_address = address;
-  // int page_size = fl_getPageSize();
-  // while (fl_getSectorContaining(page_address) == fl_getSectorAtOrAfter(address)) {
-  //   char page[DFU_FLASH_PAGE_SIZE_BYTES];
-  //   fl_readPage(page_address, page);
-  //   for (int i = 0; i < page_size; i++) {
-  //     if (page[i] != 0xFF) return false;
-  //   }
-  //   page_address += page_size;
-  // }
+  (void)address;
   return true;
 }
 
-enum flash_set_write_disable_result flash_set_write_disable(void) {
-  // if (fl_setWritability(0) == 0)
-  //   return FLASH_SET_WRITE_DISABLE_SUCCESS;
-  // else
-    return FLASH_SET_WRITE_DISABLE_ERROR;
-}
-
-enum flash_write_page_async_result flash_write_page_async(unsigned address, const char page[]) {
-  int page_size = fl_getPageSize();
-
-  // protect first sector of boot partition
-  if (address >= fl_getSectorAddress(0) && address < fl_getSectorEndAddress(0))
-    return FLASH_WRITE_PAGE_ASYNC_IN_FIRST_BOOT_SECTOR;
-
-  // protect first sector of data partition
-  if (address >= fl_getDataPartitionBase() &&
-      address < fl_getSectorEndAddress(fl_getSectorContaining(fl_getDataPartitionBase())))
-    return FLASH_WRITE_PAGE_ASYNC_IN_FIRST_DATA_SECTOR;
-
-  // disallow wrap-around flash address in order to protect boot partition
-  if (address >= fl_getFlashSize()) return FLASH_WRITE_PAGE_ASYNC_OUTSIDE_FLASH_LIMITS;
-
-  if (fl_setWritability(1) != 0) return FLASH_WRITE_PAGE_ASYNC_SET_WRITABILITY_FAILED;
-
-  // unsafe { fl_int_write(g_flashAccess->programPageCommand, address, page, page_size); }
-  // unsafe { fl_int_write(1, address, page, page_size); }
-
-  return FLASH_WRITE_PAGE_ASYNC_SUCCESS;
-}
+enum flash_set_write_disable_result flash_set_write_disable(void) { return FLASH_SET_WRITE_DISABLE_ERROR; }
 
 bool flash_verify_page(unsigned address, const char page[]) {
-  int page_size = fl_getPageSize();
+  int page_size = (int)fl_getPageSize();
   char verify[DFU_FLASH_PAGE_SIZE_BYTES];
 
   fl_readImagePage(verify);
@@ -225,6 +172,28 @@ bool flash_verify_page(unsigned address, const char page[]) {
 // No data partition support
 int flash_get_data_partition_base(void) { return -1; }
 
-int flash_get_page_size(void) { return fl_getPageSize(); }
+void flash_cmd_read_page(unsigned char *data)
+{
+    // if (!upgrade_image_valid)
+    // {
+    //     *(unsigned int *)data = 1;
+    //     return;
+    // }
 
-int flash_get_size(void) { return fl_getFlashSize(); }
+    // if (*(unsigned int *)data == 0)
+    // {
+    //     fl_startImageRead(&upgrade_image);
+    // }
+
+    // current_flash_subpage_index = 0;
+
+    // if (fl_readImagePage(current_flash_page_data) == 0)
+    // {
+    //     *(unsigned int *)data = 0;
+    //  }
+    // else
+    // {
+        *(unsigned int *)data = 1;
+    // }
+    return;
+}
