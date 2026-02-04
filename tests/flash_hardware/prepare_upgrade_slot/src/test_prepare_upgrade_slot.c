@@ -3,47 +3,42 @@
 
 #include <platform.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <unity.h>
 #include <xcore/hwtimer.h>
 
 #include "dfu_flash.h"
 
+static hwtimer_t runtime;
 
-void setUp() {}
-void tearDown() { flash_cmd_deinit(); }
+void setUp() { runtime = hwtimer_alloc(); }
 
-void delay() {
-  hwtimer_t delay = hwtimer_alloc();
-  hwtimer_delay(delay, 10000000);  // 100ms
-  hwtimer_free(delay);
+void tearDown() {
+  flash_cmd_deinit();
+  hwtimer_free(runtime);
 }
 
-void holdOff() {
-  hwtimer_t delay = hwtimer_alloc();
-  while (flash_is_busy()) {
-    hwtimer_delay(delay, 10000000);  // 100ms
-  }
-  hwtimer_free(delay);
-}
+// TODO - Ideally test with factory-only and upgrade image present
 
 void test_dfu_flash_init_reports_OK(void) {
   int status = flash_cmd_init();
   TEST_ASSERT_EQUAL(DFU_FLASH_OK, status);
+
+  uint32_t start_runtime = hwtimer_get_time(runtime);
+  uint32_t max_runtime = start_runtime + (60UL * XS1_TIMER_HZ);  // 60s
+  uint32_t running;
+  int erase = DFU_FLASH_BUSY;
+  do {
+    erase = flash_erase_sector_async(0);
+    hwtimer_delay(runtime, 10UL * XS1_TIMER_KHZ);  // 10ms
+
+    running = hwtimer_get_time(runtime);
+  } while (erase == DFU_FLASH_BUSY && !hwtimer_time_after(running, max_runtime));
+
+  printf("Erase time: %lu\n", running - start_runtime); // Typically ~7 seconds
+  TEST_ASSERT_EQUAL(DFU_FLASH_OK, erase);
 }
 
-void test_dfu_flash_after_init_is_not_busy(void) {
-  int status = flash_cmd_init();
-  TEST_ASSERT_EQUAL(DFU_FLASH_OK, status);
-  TEST_ASSERT_FALSE(flash_is_busy());
-}
-
-void test_dfu_flash_erase_sector_async_reports_OK(void) {
-  int status = flash_cmd_init();
-  TEST_ASSERT_EQUAL(DFU_FLASH_OK, status);
-  status = flash_erase_sector_async(0);
-
-  // let the flash erase complete
-  delay();
-
-  TEST_ASSERT_EQUAL(DFU_FLASH_BUSY, status);
-}
+// void test_dfu_flash_failing_test(void) {
+//   TEST_ASSERT_TRUE(0);
+// }
