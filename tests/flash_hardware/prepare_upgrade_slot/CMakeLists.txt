@@ -13,6 +13,8 @@ set(APP_DEPENDENT_MODULES  "lib_dfu" "lib_unity(2.6.1)")
 
 # -march=xs3a -mcmodel=large ??
 set(COMPILER_FLAGS      -g
+                        -Wno-xcore-fptrgroup
+                        -fcmdline-buffer-bytes=256
                         -lquadflash
                         -mno-dual-issue
                         -report
@@ -37,7 +39,7 @@ foreach(test_file ${tests})
 endforeach()
 
 # Enable auto gen of test runners
-set(LIB_UNITY_AUTO_TEST_RUNNER ON)
+set(LIB_UNITY_AUTO_TEST_RUNNER OFF)
 
 # Disable unity features that we dont use
 set(LIB_UNITY_USE_FIXTURE OFF)

@@ -9,6 +9,9 @@
 
 #include "dfu_flash.h"
 
+/* Main args */
+uint32_t timing_threshold_ms = 0;
+
 static hwtimer_t runtime;
 
 void setUp() { runtime = hwtimer_alloc(); }
@@ -20,7 +23,7 @@ void tearDown() {
 
 // TODO - Ideally test with factory-only and upgrade image present
 
-void test_dfu_flash_init_reports_OK(void) {
+void test_dfu_flash_prepare_slot_reports_OK(void) {
   int status = flash_cmd_init();
   TEST_ASSERT_EQUAL(DFU_FLASH_OK, status);
 
@@ -36,9 +39,7 @@ void test_dfu_flash_init_reports_OK(void) {
   } while (erase == DFU_FLASH_BUSY && !hwtimer_time_after(running, max_runtime));
 
   printf("Erase time: %lu\n", running - start_runtime); // Typically ~7 seconds
+  TEST_ASSERT_TRUE((running - start_runtime) > (4000 * XS1_TIMER_KHZ));
+  TEST_ASSERT_TRUE((running - start_runtime) < (timing_threshold_ms * XS1_TIMER_KHZ));
   TEST_ASSERT_EQUAL(DFU_FLASH_OK, erase);
 }
-
-// void test_dfu_flash_failing_test(void) {
-//   TEST_ASSERT_TRUE(0);
-// }
