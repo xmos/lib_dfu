@@ -37,7 +37,7 @@ int write(hwtimer_t runtime, FILE* file) {
     read_total += read;
     // assert(read >= 0 && read <= block_size);
     uint32_t wr_start = hwtimer_get_time(runtime);
-    wr_status = flash_write_page_async(page);
+    wr_status = flash_write_page(page, sizeof(page));
     uint32_t wr_end = hwtimer_get_time(runtime);
     wr_run_time += (wr_end - wr_start);
 

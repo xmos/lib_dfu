@@ -41,7 +41,7 @@ enum flash_status flash_cmd_deinit(void);
 
 enum flash_status flash_erase_sector_async(unsigned address);
 
-enum flash_status flash_write_page_async(const unsigned char page[]);
+enum flash_status flash_write_page(const unsigned char page[], int length);
 
 enum flash_status flash_finalise_write();
 

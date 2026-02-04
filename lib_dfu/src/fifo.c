@@ -113,19 +113,19 @@ int fifo_block_enqueue(struct fifo *fifo, uint8_t *data, int length) {
 
   int head_space = f_block_enqueue_head_space(fifo);
   if (length <= head_space) {
-    memcpy(&fifo->buffer[fifo->head], data, length);
+    memcpy(&fifo->buffer[fifo->head], data, (size_t)length);
     fifo->head += length;
     if (fifo->head >= fifo->max) {
       fifo->head -= fifo->max;
     }
     fifo->count += length;
   } else {
-    memcpy(&fifo->buffer[fifo->head], data, head_space);
+    memcpy(&fifo->buffer[fifo->head], data, (size_t)head_space);
     fifo->head = 0;
     fifo->count += head_space;
 
     int remaining = length - head_space;
-    memcpy(&fifo->buffer[fifo->head], &data[head_space], remaining);
+    memcpy(&fifo->buffer[fifo->head], &data[head_space], (size_t)remaining);
     fifo->head += remaining;
     fifo->count += remaining;
   }
@@ -144,19 +144,19 @@ int fifo_block_dequeue(struct fifo *fifo, uint8_t *data, int length) {
 
   int tail_count = f_block_dequeue_tail_count(fifo);
   if (length <= tail_count) {
-    memcpy(data, &fifo->buffer[fifo->tail], length);
+    memcpy(data, &fifo->buffer[fifo->tail], (size_t)length);
     fifo->tail += length;
     if (fifo->tail >= fifo->max) {
       fifo->tail -= fifo->max;
     }
     fifo->count -= length;
   } else {
-    memcpy(data, &fifo->buffer[fifo->tail], tail_count);
+    memcpy(data, &fifo->buffer[fifo->tail], (size_t)tail_count);
     fifo->tail = 0;
     fifo->count -= tail_count;
 
     int remaining = length - tail_count;
-    memcpy(&data[tail_count], &fifo->buffer[fifo->tail], remaining);
+    memcpy(&data[tail_count], &fifo->buffer[fifo->tail], (size_t)remaining);
     fifo->tail += remaining;
     fifo->count -= remaining;
   }

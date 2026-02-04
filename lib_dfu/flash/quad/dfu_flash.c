@@ -99,8 +99,11 @@ enum flash_status flash_erase_sector_async(unsigned address) {
   }
 }
 
-enum flash_status flash_write_page_async(const unsigned char *page) {
-  if (flash_session.upgrade_image_valid) {
+enum flash_status flash_write_page(const unsigned char *page, int length) {
+  if (page == NULL || length != (int)fl_getPageSize()) {
+    return DFU_FLASH_BAD_PARAM;
+    
+  } else if (flash_session.upgrade_image_valid) {
     return DFU_FLASH_ERASE_ERROR;
 
   } else if (fl_writeImagePage(page) != 0) {
@@ -125,7 +128,7 @@ enum flash_status flash_finalise_write() {
 }
 
 enum flash_status flash_read_page(unsigned char *data, int length) {
-  if (data == NULL || length < DFU_FLASH_PAGE_SIZE_BYTES) {
+  if (data == NULL || length != (int)fl_getPageSize()) {
     return DFU_FLASH_BAD_PARAM;
   } else if (!flash_session.upgrade_image_valid) {
     return DFU_FLASH_READ_NO_IMAGE;
