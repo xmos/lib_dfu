@@ -35,7 +35,7 @@ class UnityTestExecutable(pytest.Item):
         """
         fancy test output processing.
         """
-        proc = subprocess.run(["xrun", "--xscope", "--args", self.xe, "10000"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.run(["xrun", "--xscope", "--args", self.xe, "../../dummy/bin/hello_world.bin", "10000", "50"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         self.add_report_section("call", "stdout", proc.stdout)
         unity_result_pattern=r"^(?P<path>[^\n:]+):(?P<line>\d+):(?P<name>[^:]+):(?P<status>PASS|FAIL)(: (?P<message>.*))?$"
         unlikely_repl = "unlikely_repl"

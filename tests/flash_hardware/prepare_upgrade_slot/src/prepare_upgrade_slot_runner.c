@@ -16,6 +16,7 @@
 extern void setUp(void);
 extern void tearDown(void);
 extern void test_dfu_flash_prepare_slot_reports_OK(void);
+extern void test_dfu_flash_write_reports_OK(void);
 
 
 /*=======Mock Management=====*/
@@ -73,22 +74,33 @@ static void run_test(UnityTestFunction func, const char* name, UNITY_LINE_TYPE l
     UnityConcludeTest();
 }
 
-extern uint32_t timing_threshold_ms;
+extern uint32_t erase_timing_threshold_ms;
+extern uint32_t write_timing_threshold_ms;
+extern FILE* upgrade_file;
 
 /*=======MAIN=====*/
 int main(int argc, char * argv[])
 {
-  xassert((argc == 2) && msg("Usage: <file>.xe <timing threshold>"));
-    
+  xassert((argc == 4) && msg("Usage: <file>.xe <upgrade-image-file> <erase-timing> <write-timing>"));
+
+  upgrade_file = fopen(argv[1], "rb");
+
   int32_t time_temp;
-  int scan = sscanf(argv[1], "%d", &time_temp);
+  int scan = sscanf(argv[2], "%ld", &time_temp);
   xassert(scan == 1);
   xassert((time_temp > 0) && msg("Error: timing threshold must be positive"));
-  timing_threshold_ms = (uint32_t)time_temp;
+  erase_timing_threshold_ms = (uint32_t)time_temp;
+
+  scan = sscanf(argv[3], "%ld", &time_temp);
+  xassert(scan == 1);
+  xassert((time_temp > 0) && msg("Error: timing threshold must be positive"));
+  write_timing_threshold_ms = (uint32_t)time_temp;
 
   /* Unity runner */
   UnityBegin("src/test_prepare_upgrade_slot.c");
-  run_test(test_dfu_flash_prepare_slot_reports_OK, "test_dfu_flash_prepare_slot_reports_OK", 23);
+  run_test(test_dfu_flash_prepare_slot_reports_OK, "test_dfu_flash_prepare_slot_reports_OK", 48);
+  run_test(test_dfu_flash_write_reports_OK, "test_dfu_flash_write_reports_OK", 70);
 
+  fclose(upgrade_file);
   return UnityEnd(); 
 }
