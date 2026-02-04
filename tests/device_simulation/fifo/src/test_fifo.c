@@ -155,7 +155,7 @@ void test_fifo_block_enqueue_wrap_reports_correct_data(void) {
 
     /* dequeue character at a time */
     uint8_t data_dequeued[4] = {0};
-    for (int i = 0; i < sizeof(data_dequeued); i++) {
+    for (size_t i = 0; i < sizeof(data_dequeued); i++) {
         struct fifo_status_data result = fifo_dequeue(&block_test_fifo);
         TEST_ASSERT_EQUAL(FIFO_OK, result.status);
         data_dequeued[i] = result.data;

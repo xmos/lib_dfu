@@ -7,6 +7,10 @@
 #include <stdint.h>
 #include <xccompat.h>
 
+#if defined __XC__ || defined __cplusplus
+extern "C" {
+#endif
+
 enum fifo_status {
   FIFO_OK = 0,
   FIFO_ERROR = -1,
@@ -16,7 +20,7 @@ enum fifo_status {
 };
 
 struct fifo {
-  uint8_t *buffer;
+  uint8_t* buffer;
   int head;
   int tail;
   int max;  // of the buffer
@@ -27,6 +31,10 @@ struct fifo_status_data {
   enum fifo_status status;
   uint8_t data;
 };
+
+#if defined __XC__ || defined __cplusplus
+}
+#endif
 
 /** Initialization of fifo
  * \param fifo Pointer to fifo structure
@@ -84,8 +92,8 @@ int fifo_size(REFERENCE_PARAM(struct fifo, fifo));
  * \param data Pointer to data block to enqueue
  * \param length Number of bytes to enqueue
  * \retval FIFO_OK on success
- * \retval FIFO_FULL if fifo does not have enough space, fifo does not perfrom best-effort so if space is insufficient no data is enqueued,
- * \retval FIFO_BAD_PARAM if fifo or data pointer is null
+ * \retval FIFO_FULL if fifo does not have enough space, fifo does not perfrom best-effort so if space is insufficient
+ * no data is enqueued, \retval FIFO_BAD_PARAM if fifo or data pointer is null
  */
 int fifo_block_enqueue(REFERENCE_PARAM(struct fifo, fifo), REFERENCE_PARAM(uint8_t, data), int length);
 
@@ -94,8 +102,8 @@ int fifo_block_enqueue(REFERENCE_PARAM(struct fifo, fifo), REFERENCE_PARAM(uint8
  * \param data Pointer to buffer to store dequeued data
  * \param length Number of bytes to dequeue
  * \retval FIFO_OK on success
- * \retval FIFO_EMPTY if fifo does not have enough data, fifo does not perfrom best-effort so if insufficient data is available no data is dequeued,
- * \retval FIFO_BAD_PARAM if fifo or data pointer is null
+ * \retval FIFO_EMPTY if fifo does not have enough data, fifo does not perfrom best-effort so if insufficient data is
+ * available no data is dequeued, \retval FIFO_BAD_PARAM if fifo or data pointer is null
  */
 int fifo_block_dequeue(REFERENCE_PARAM(struct fifo, fifo), REFERENCE_PARAM(uint8_t, data), int length);
 
