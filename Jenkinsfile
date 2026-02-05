@@ -192,9 +192,9 @@ pipeline {
                                     withXTAG(["XCORE-AI-EXPLORER"]) {
                                         xtagIds -> sh(script: "xflash --adapter-id ${xtagIds[0]} --factory dummy/bin/hello_world.xe")
 
-                                        // dir("flash_hardware/prepare_upgrade_slot") {
-                                        //     xtagIds -> runPytest("--adapter-id ${xtagIds[0]}")
-                                        // }
+                                        dir("flash_hardware/prepare_upgrade_slot") {
+                                            xtagIds -> runPytest("--adapter-id ${xtagIds[0]}")
+                                        }
                                     }
                                 }
                             }
