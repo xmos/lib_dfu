@@ -190,10 +190,13 @@ pipeline {
                                         sh "xflash --factory-version 15.3 --upgrade 1 bin/hello_world.xe -o bin/hello_world.bin"
                                     }
                                     withXTAG(["XCORE-AI-EXPLORER"]) {
-                                        xtagIds -> sh(script: "xflash --adapter-id ${xtagIds[0]} --factory dummy/bin/hello_world.xe")
+                                        def xtag = ""
+                                        xtagIds -> xtag = ${xtagIds[0]}
+                                        echo "Using XTAG with adapter ID ${xtag} for hardware test"
+                                        sh(script: "xflash --adapter-id ${xtag} --factory dummy/bin/hello_world.xe")
 
                                         dir("flash_hardware/prepare_upgrade_slot") {
-                                            xtagIds -> runPytest("--adapter-id ${xtagIds[0]}")
+                                            runPytest("--adapter-id ${xtag}")
                                         }
                                     }
                                 }
