@@ -174,11 +174,6 @@ pipeline {
 
                         println "Stage running on ${env.NODE_NAME}"
 
-                        // script {
-                        //     def (server, user, repo) = extractFromScmUrl()
-                        //     env.REPO_NAME = repo
-                        // }
-
                         dir(REPO_NAME){
                             checkoutScmShallow()
                         }
@@ -195,9 +190,11 @@ pipeline {
                                         sh "xflash --factory-version 15.3 --upgrade 1 bin/hello_world.xe -o bin/hello_world.bin"
                                     }
                                     withXTAG(["XCORE-AI-EXPLORER"]) {
-                                        dir("flash_hardware/prepare_upgrade_slot") {
-                                            xtagIds -> runPytest("--adapter-id ${xtagIds[0]}")
-                                        }
+                                        xtagIds -> sh(script: "xflash --adapter-id ${xtagIds[0]} --factory dummy/bin/hello_world.xe")
+
+                                        // dir("flash_hardware/prepare_upgrade_slot") {
+                                        //     xtagIds -> runPytest("--adapter-id ${xtagIds[0]}")
+                                        // }
                                     }
                                 }
                             }
