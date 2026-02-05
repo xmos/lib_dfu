@@ -135,6 +135,10 @@ pipeline {
                             withTools(params.TOOLS_VERSION) {
                                 createVenv(reqFile: "requirements.txt")
                                 withVenv {
+                                    dir("dummy") {
+                                        xcoreBuild(archiveBins: false)
+                                        sh "xflash --factory-version 15.3 --upgrade 1 bin\\hello_world.xe -o bin\\hello_world.bin"
+                                    }
                                     // Host tests
                                     dir("host") {
                                         sh "cmake -B build"
@@ -145,8 +149,7 @@ pipeline {
                                     runPytest("--level=${params.TEST_LEVEL} -k host")
                                     
                                     // Device simulation tests
-                                    dir("device_simulation/buffer_converter") {
-                                        xcoreBuild(archiveBins: false)
+                                    dir("device_simulation/fifo") {
                                         runPytest()
                                     }
                                 }
@@ -161,6 +164,53 @@ pipeline {
                 }
             }
         } // stage 'Build and test'
+
+        stage('🔧 Hardware Tests') {
+            agent {
+                label 'xcore.ai'
+            }
+
+            stages {
+                stage('Checkout') {
+                    steps {
+
+                        println "Stage running on ${env.NODE_NAME}"
+
+                        // script {
+                        //     def (server, user, repo) = extractFromScmUrl()
+                        //     env.REPO_NAME = repo
+                        // }
+
+                        dir(REPO_NAME){
+                            checkoutScmShallow()
+                        }
+                    }
+                }
+                stage('Prepare upgrade slot test') {
+                    steps {
+                        dir ("${REPO_NAME}/tests") {
+                            withTools(params.TOOLS_VERSION) {
+                                createVenv(reqFile: "requirements.txt")
+                                withVenv {
+                                    dir("dummy") {
+                                        xcoreBuild(archiveBins: false)
+                                        sh "xflash --factory-version 15.3 --upgrade 1 bin\\hello_world.xe -o bin\\hello_world.bin"
+                                    }
+                                    xcoreBuild(archiveBins: false)
+                                    runPytest("-k prepare_upgrade_slot")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            post {
+                cleanup {
+                    xcoreCleanSandbox()
+                }
+            }
+        } // stage "Test on hardware"
         
         stage('🚀 Release') {
             when {
