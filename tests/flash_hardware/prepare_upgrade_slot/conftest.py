@@ -1,5 +1,6 @@
-# Copyright 2021-2024 XMOS LIMITED.
+# Copyright 2026 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
+
 import pytest
 import subprocess
 import re
