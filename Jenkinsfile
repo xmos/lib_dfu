@@ -165,7 +165,7 @@ pipeline {
 
         stage('🔧 Hardware Tests') {
             agent {
-                label 'xcore.ai'
+                label 'sw-hw-xcai-exp0 || sw-hw-xcai-exp1 || sw-hw-xcai-exp2 || sw-hw-xcai-exp3'
             }
 
             stages {
@@ -190,8 +190,7 @@ pipeline {
                                         sh "xflash --factory-version 15.3 --upgrade 1 bin/hello_world.xe -o bin/hello_world.bin"
                                     }
                                     withXTAG(["XCORE-AI-EXPLORER"]) {
-                                        def xtag = ""
-                                        xtagIds -> xtag = ${xtagIds[0]}
+                                        xtagIds -> def xtag = ${xtagIds[0]}
                                         echo "Using XTAG with adapter ID ${xtag} for hardware test"
                                         sh(script: "xflash --adapter-id ${xtag} --factory dummy/bin/hello_world.xe")
 
