@@ -12,7 +12,8 @@ def pytest_addoption(parser):
     parser.addoption("--adapter-id", action="store", default="XXXXXXXX", help="XTAG adapter ID")
 
 
-# Is there a better way to pass cmd=line options to test that inherit from pytest.Item? I couldn't find a way to do this without using global variables, which is not ideal but seems to be the only way.
+# Is there a better way to pass cmd=line options to test that inherit from pytest.Item? I couldn't find a way to do
+# this without using global variables, which is not ideal but seems to be the only way.
 level = None
 adapter_id = None
 
@@ -20,9 +21,13 @@ adapter_id = None
 def pytest_configure(config):
     subprocess.run(["cmake", "-B", "build"], check=True)
     subprocess.run(["cmake", "--build", "build"], check=True)
+
     global level, adapter_id
     level = config.getoption("--level")
     adapter_id = config.getoption("--adapter-id")
+
+    # This is required for the prepare_upgrade_slot tests
+    subprocess.run(["xflash", "--adapter-id", adapter_id, "--factory", "../../dummy/bin/hello_world.xe"], check=True)
 
 
 def pytest_collect_file(parent, file_path: Path):
