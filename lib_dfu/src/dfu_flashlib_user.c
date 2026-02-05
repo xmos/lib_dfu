@@ -13,9 +13,6 @@
 #else
 #include <flashlib.h>
 #endif
-// #include <print.h>
-
-#include "dfu_flash_interface.h"
 
 #define settw(a, b) \
   { __asm__ __volatile__("settw res[%0], %1" : : "r"(a), "r"(b)); }
