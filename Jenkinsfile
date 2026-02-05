@@ -143,10 +143,8 @@ pipeline {
                                     dir("host") {
                                         sh "cmake -B build"
                                         sh "cmake --build build"
+                                        runPytest("--level=${params.TEST_LEVEL}")
                                     }
-                                    // xcoreBuild(archiveBins: false)
-                                    // Use the TEST_LEVEL parameter to control the test coverage
-                                    runPytest("--level=${params.TEST_LEVEL} -k host")
                                     
                                     // Device simulation tests
                                     dir("device_simulation/fifo") {
@@ -196,8 +194,9 @@ pipeline {
                                         xcoreBuild(archiveBins: false)
                                         sh "xflash --factory-version 15.3 --upgrade 1 bin\\hello_world.xe -o bin\\hello_world.bin"
                                     }
-                                    xcoreBuild(archiveBins: false)
-                                    runPytest("-k prepare_upgrade_slot")
+                                    dir("flash_hardware/prepare_upgrade_slot") {
+                                        runPytest()
+                                    }
                                 }
                             }
                         }
