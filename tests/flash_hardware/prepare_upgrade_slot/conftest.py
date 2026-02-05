@@ -6,43 +6,65 @@ import subprocess
 import re
 from pathlib import Path
 
-def pytest_configure():
+
+def pytest_addoption(parser):
+    parser.addoption("--level", action="store", default="default", help="smoke or extended")
+    parser.addoption("--adapter-id", action="store", default="XXXXXXXX", help="XTAG adapter ID")
+
+
+# Is there a better way to pass cmd=line options to test that inherit from pytest.Item? I couldn't find a way to do this without using global variables, which is not ideal but seems to be the only way.
+level = None
+adapter_id = None
+
+
+def pytest_configure(config):
     subprocess.run(["cmake", "-B", "build"], check=True)
     subprocess.run(["cmake", "--build", "build"], check=True)
+    global level, adapter_id
+    level = config.getoption("--level")
+    adapter_id = config.getoption("--adapter-id")
+
 
 def pytest_collect_file(parent, file_path: Path):
     """Custom collection function to inform pytest that xe files contain tests."""
     if file_path.suffix == ".xe":
         return UnityTestSource.from_parent(parent, path=file_path)
 
+
 class UnityTestSource(pytest.File):
     """
     Each xe file contains 1 pytest test.
     """
+
     def collect(self):
-        yield UnityTestExecutable.from_parent(self, xe=self.path, name=self.path.stem)
+        yield UnityTestExecutable.from_parent(self, xe=self.path, name=self.path.stem, level=level, adapter_id=adapter_id)
 
 
 class UnityTestExecutable(pytest.Item):
     """
     Run the xe file in xsim, this is the work of the test.
     """
-    def __init__(self, xe, **kwargs):
+
+    def __init__(self, xe, level, adapter_id, **kwargs):
         super().__init__(**kwargs)
-        self.xe=xe
-        self.fail_reason=[]
+        self.xe = xe
+        self.fail_reason = []
+        self.level = level
+        self.adapter_id = adapter_id
 
     def runtest(self):
         """
         fancy test output processing.
         """
-        proc = subprocess.run(["xrun", "--xscope", "--args", self.xe, "../../dummy/bin/hello_world.bin", "10000", "120"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.run(["xrun", "--xscope", "--adapter-id", self.adapter_id, "--args", self.xe, "../../dummy/bin/hello_world.bin",
+                              "10000", "120"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         self.add_report_section("call", "stdout", proc.stdout)
-        unity_result_pattern=r"^(?P<path>[^\n:]+):(?P<line>\d+):(?P<name>[^:]+):(?P<status>PASS|FAIL)(: (?P<message>.*))?$"
+        unity_result_pattern = r"^(?P<path>[^\n:]+):(?P<line>\d+):(?P<name>[^:]+):(?P<status>PASS|FAIL)(: (?P<message>.*))?$"
         unlikely_repl = "unlikely_repl"
 
         result = [i for i in re.finditer(unity_result_pattern, proc.stdout, re.MULTILINE)]
-        all_out = [i for i in re.sub(unity_result_pattern, unlikely_repl, proc.stdout, flags=re.MULTILINE).split(unlikely_repl)]
+        all_out = [i for i in re.sub(unity_result_pattern, unlikely_repl, proc.stdout,
+                                     flags=re.MULTILINE).split(unlikely_repl)]
 
         for match, output in zip(result, all_out):
             file, line, test_name, status, message = match.group("path", "line", "name", "status", "message")

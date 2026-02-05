@@ -194,8 +194,10 @@ pipeline {
                                         xcoreBuild(archiveBins: false)
                                         sh "xflash --factory-version 15.3 --upgrade 1 bin/hello_world.xe -o bin/hello_world.bin"
                                     }
-                                    dir("flash_hardware/prepare_upgrade_slot") {
-                                        runPytest()
+                                    withXTAG(["xcore-ai-explorer"]) {
+                                        dir("flash_hardware/prepare_upgrade_slot") {
+                                            xtagIds -> runPytest("--adapter-id ${xtagIds[0]}")
+                                        }
                                     }
                                 }
                             }
