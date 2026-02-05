@@ -137,7 +137,7 @@ pipeline {
                                 withVenv {
                                     dir("dummy") {
                                         xcoreBuild(archiveBins: false)
-                                        sh "xflash --factory-version 15.3 --upgrade 1 bin\\hello_world.xe -o bin\\hello_world.bin"
+                                        sh "xflash --factory-version 15.3 --upgrade 1 bin/hello_world.xe -o bin/hello_world.bin"
                                     }
                                     // Host tests
                                     dir("host") {
@@ -192,7 +192,7 @@ pipeline {
                                 withVenv {
                                     dir("dummy") {
                                         xcoreBuild(archiveBins: false)
-                                        sh "xflash --factory-version 15.3 --upgrade 1 bin\\hello_world.xe -o bin\\hello_world.bin"
+                                        sh "xflash --factory-version 15.3 --upgrade 1 bin/hello_world.xe -o bin/hello_world.bin"
                                     }
                                     dir("flash_hardware/prepare_upgrade_slot") {
                                         runPytest()
