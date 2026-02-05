@@ -119,6 +119,9 @@ pipeline {
                                         sh "cmake --build build"
                                         runPytest("--level=${params.TEST_LEVEL}")
                                     }
+                                    dir("device_simulation/fifo") {
+                                        runPytest("--level=${params.TEST_LEVEL}")
+                                    }
                                 }
                             }
                         }

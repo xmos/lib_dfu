@@ -133,16 +133,15 @@ int flash_get_size(void);
 /* The following is DEPRECATED
  * Will be removed as dfu.xc is updated.
  */
-
 #include "dfu_flash_result.h"
 
 bool flash_is_first_whole_page_in_sector(unsigned address);
 
 bool flash_is_sector_erased(unsigned address);
 
-enum flash_locate_boot_upgrade_slot_result flash_locate_boot_upgrade_slot(REFERENCE_PARAM(unsigned, address));
+// enum flash_locate_boot_upgrade_slot_result flash_locate_boot_upgrade_slot(REFERENCE_PARAM(unsigned, address));
 
-enum flash_locate_data_upgrade_slot_result flash_locate_data_upgrade_slot(REFERENCE_PARAM(unsigned, address));
+// enum flash_locate_data_upgrade_slot_result flash_locate_data_upgrade_slot(REFERENCE_PARAM(unsigned, address));
 
 enum flash_set_write_disable_result flash_set_write_disable(void);
 

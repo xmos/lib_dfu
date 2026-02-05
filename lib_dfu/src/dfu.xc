@@ -2,6 +2,8 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #include <xs1.h>
 #include <print.h>
+#include <string.h>
+#include <stdint.h>
 
 #define _Bool int
 #include <stdbool.h>
@@ -11,10 +13,13 @@
 #include "debug_print.h"
 #include "xassert.h"
 
-#include "dfu_buffer_converter.h"
 #include "dfu_flash.h"
 #include "dfu_flash_result.h"
 #include "dfu.h"
+#include "fifo.h"
+
+// TODOs
+// Find place to insert flash_cmd_init() and flash_cmd_deinit()
 
 #define POLL_TIMEOUT_MSEC 1
 
@@ -22,14 +27,17 @@ static enum dfu_state state = APP_IDLE;
 static enum dfu_status status = DFU_OK;
 static int error_info = 0;
 
-static struct buffer_converter converter;
+static struct fifo dfu_fifo;
+static uint8_t dfu_fifo_storage[DFU_FLASH_PAGE_SIZE_BYTES];
 
 static struct {
   unsigned boot, data;
 } upgrade_slots = {0, 0};
 
+
 static struct {
-  int next_page_address;
+  // int next_page_address;
+  /* TODO - DEPRECATE */
   char page[DFU_FLASH_PAGE_SIZE_BYTES];
   bool page_ready;
   enum dnload_sub_state {
@@ -37,7 +45,7 @@ static struct {
     DNLOAD_ERASING_SECTOR,
     DNLOAD_WRITING_PAGE
   } sub_state;
-} dnload = {0, {}, false, DNLOAD_SYNC};
+} dnload = {{}, false, DNLOAD_SYNC};
 
 enum dfu_request {
   DFU_DETACH,
@@ -157,16 +165,16 @@ static void sub_transition_dnload(enum dnload_sub_state new)
   dnload.sub_state = new;
 }
 
-static bool is_address_in_an_upgrade_slot(unsigned address)
-{
-  if (address >= upgrade_slots.boot && address < (unsigned)flash_get_data_partition_base())
-    return true;
+// static bool is_address_in_an_upgrade_slot(unsigned address)
+// {
+//   if (address >= upgrade_slots.boot && address < (unsigned)flash_get_data_partition_base())
+//     return true;
 
-  if (address >= upgrade_slots.data && address < (unsigned)flash_get_size())
-    return true;
+//   if (address >= upgrade_slots.data && address < (unsigned)flash_get_size())
+//     return true;
 
-  return false;
-}
+//   return false;
+// }
 
 
 static enum dfu_status getstatus_from_dnload(bool &busy)
@@ -176,25 +184,25 @@ static enum dfu_status getstatus_from_dnload(bool &busy)
   switch (dnload.sub_state) {
     case DNLOAD_SYNC:
       if (dnload.page_ready) {
-        if (flash_is_first_whole_page_in_sector(dnload.next_page_address)) {
-          if (!is_address_in_an_upgrade_slot(dnload.next_page_address))
-            return ERR_ADDRESS;
+        // if (flash_is_first_whole_page_in_sector(dnload.next_page_address)) {
+          // if (!is_address_in_an_upgrade_slot(dnload.next_page_address))
+          //   return ERR_ADDRESS;
 
           sub_transition_dnload(DNLOAD_ERASING_SECTOR);
 
-          if (flash_erase_sector_async(dnload.next_page_address) != 0)
-            return ERR_ERASE;
-        }
-        else {
-          if (!is_address_in_an_upgrade_slot(dnload.next_page_address))
-            return ERR_ADDRESS;
+          // if (flash_erase_sector_async(dnload.next_page_address) != 0)
+          //   return ERR_ERASE;
+        // }
+        // else {
+          // if (!is_address_in_an_upgrade_slot(dnload.next_page_address))
+          //   return ERR_ADDRESS;
 
           sub_transition_dnload(DNLOAD_WRITING_PAGE);
 
           // TODO - fix flash
-          if (flash_write_page(dnload.page, DFU_FLASH_PAGE_SIZE_BYTES) != 0)
+          if (flash_write_page(dnload.page, sizeof(dnload.page)) != 0)
             return ERR_WRITE;
-        }
+        // }
       }
       else {
         busy = false;
@@ -203,31 +211,31 @@ static enum dfu_status getstatus_from_dnload(bool &busy)
 
     case DNLOAD_ERASING_SECTOR:
       if (!flash_is_busy()) {
-        if (!flash_is_sector_erased(dnload.next_page_address))
-          return ERR_CHECK_ERASED;
+        // if (!flash_is_sector_erased(dnload.next_page_address))
+        //   return ERR_CHECK_ERASED;
 
-        if (!is_address_in_an_upgrade_slot(dnload.next_page_address))
-          return ERR_ADDRESS;
+        // if (!is_address_in_an_upgrade_slot(dnload.next_page_address))
+        //   return ERR_ADDRESS;
 
         sub_transition_dnload(DNLOAD_WRITING_PAGE);
 
-        if (flash_write_page(dnload.page, DFU_FLASH_PAGE_SIZE_BYTES) != 0)
+        if (flash_write_page(dnload.page, sizeof(dnload.page)) != 0)
           return ERR_WRITE;
       }
       break;
 
     case DNLOAD_WRITING_PAGE:
       if (!flash_is_busy()) {
-        if (!flash_verify_page(dnload.next_page_address, dnload.page))
-          return ERR_VERIFY;
+        // if (!flash_verify_page(dnload.next_page_address, dnload.page))
+        //   return ERR_VERIFY;
 
         const int page_size_bytes = flash_get_page_size();
 
         sub_transition_dnload(DNLOAD_SYNC);
 
-        dnload.next_page_address += page_size_bytes;
+        // dnload.next_page_address += page_size_bytes;
 
-        if (buffer_converter_pull(converter, dnload.page, page_size_bytes) != 0) {
+        if (fifo_block_dequeue(dfu_fifo, dnload.page, page_size_bytes) != FIFO_OK) {
           dnload.page_ready = false;
           busy = false;
         }
@@ -241,6 +249,8 @@ static enum dfu_status getstatus_from_dnload(bool &busy)
 static int dnload_block(const char write_block[], int block_num,
                         int block_size_bytes)
 {
+  (void)block_num; // TODO - remove
+
   const int page_size_bytes = flash_get_page_size();
 
   // it should be an error for the sub-state machine to go out of sync
@@ -257,27 +267,29 @@ static int dnload_block(const char write_block[], int block_num,
     // peek at main state here to determine if this is the first DNLOAD block of
     // a given operation so we can suitably start things off
     if (state == DFU_IDLE) {
-      dnload.next_page_address = block_num & DFU_BLOCK_NUM_DATA_IMAGE_MARKER
-                                 ? upgrade_slots.data : upgrade_slots.boot;
-      buffer_converter_reset(converter);
+      // dnload.next_page_address = block_num & DFU_BLOCK_NUM_DATA_IMAGE_MARKER
+      //                            ? upgrade_slots.data : upgrade_slots.boot;
+      fifo_init(dfu_fifo, *dfu_fifo_storage, sizeof(dfu_fifo_storage));
     }
 
     // non-zero return value from the push function indicates not enough space
     // in the queue of blocks awaiting conversion to pages
     // for some reason there are have been not enough pulls or too many pushes
-    if (buffer_converter_push(converter, write_block, block_size_bytes) != 0)
+    if (fifo_block_enqueue(dfu_fifo, write_block, block_size_bytes) != FIFO_OK)
       return 3;
 
     // normal scenario: once we have enough blocks to make one page, commit this
     // page for the next stage: optional sector erase followed by one or more
     // page writes
-    if (buffer_converter_pull(converter, dnload.page, page_size_bytes) == 0)
+    if (fifo_block_dequeue(dfu_fifo, dnload.page, page_size_bytes) == FIFO_OK)
       dnload.page_ready = true;
   }
 
   if (block_size_bytes == 0) {
     // drain conversion buffer of partial page, if any
-    if (buffer_converter_padded_pull(converter, dnload.page, page_size_bytes) > 0)
+    int remaining_bytes = fifo_size(dfu_fifo);
+    if (fifo_block_dequeue(dfu_fifo, dnload.page, remaining_bytes) == FIFO_OK)
+      memset(&dnload.page[remaining_bytes], 0xFF, page_size_bytes - remaining_bytes);
       dnload.page_ready = true;
   }
 
@@ -481,16 +493,16 @@ int dfu_get_error_info(void)
   return error_info;
 }
 
-int dfu_locate_upgrade_slots(void)
-{
-  if (flash_locate_boot_upgrade_slot(upgrade_slots.boot) != 0)
-    return 1;
+// int dfu_locate_upgrade_slots(void)
+// {
+//   if (flash_locate_boot_upgrade_slot(upgrade_slots.boot) != 0)
+//     return 1;
 
-  if (flash_locate_data_upgrade_slot(upgrade_slots.data) != 0)
-    return 2;
+//   if (flash_locate_data_upgrade_slot(upgrade_slots.data) != 0)
+//     return 2;
 
-  return 0;
-}
+//   return 0;
+// }
 
 bool dfu_is_flash_suitable(const fl_QuadDeviceSpec spec[1])
 {

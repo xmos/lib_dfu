@@ -1,7 +1,9 @@
 // Copyright 2012-2026 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#include <platform.h>
+// TODO - move to lib_board_support for L71 and AI-Explorer...
+
+// #include "uac_hwresources.h" // TODO - For CLKBLK_FLASHLIB in lib_xua projects... TBC
 #include <xclib.h>
 #include <xs1.h>
 
@@ -13,6 +15,7 @@
 #else
 #include <flashlib.h>
 #endif
+#include <platform.h>
 
 #define settw(a, b) \
   { __asm__ __volatile__("settw res[%0], %1" : : "r"(a), "r"(b)); }
@@ -48,23 +51,15 @@ typedef struct {
       clock qspiClkblk;
 } fl_QSPIPorts;
 */
-fl_QSPIPorts p_qflash = {PORT_SQI_CS, PORT_SQI_SCLK, PORT_SQI_SIO, CLKBLK_FLASHLIB};
+fl_QSPIPorts p_qflash = {XS1_PORT_1B, XS1_PORT_1C, XS1_PORT_4B, CLKBLK_FLASHLIB};
 #else
-fl_PortHolderStruct p_flash = {XS1_PORT_1A, PORT_SQI_CS, PORT_SQI_SCLK, XS1_PORT_1D, CLKBLK_FLASHLIB};
+fl_PortHolderStruct p_flash = {XS1_PORT_1A, XS1_PORT_1B, XS1_PORT_1C, XS1_PORT_1D, CLKBLK_FLASHLIB};
 #endif
 
 enum flash_status flash_cmd_enable_ports() {
   int result = 0;
 #if (DFU_QUAD_SPI_FLASH)
   /* Ports not shared */
-  
-#ifdef DFU_USER_FLASH_DEVICE
-  result = fl_connectToDevice(&p_qflash, flash_devices, sizeof(flash_devices) / sizeof(fl_QuadDeviceSpec));
-#else
-  /* Use default flash list */
-  result = fl_connect(&p_qflash);
-#endif
-
 #else
   setc(p_flash.spiMISO, XS1_SETC_INUSE_OFF);
   setc(p_flash.spiCLK, XS1_SETC_INUSE_OFF);
@@ -77,7 +72,6 @@ enum flash_status flash_cmd_enable_ports() {
   setc(p_flash.spiMOSI, XS1_SETC_INUSE_ON);
   setc(p_flash.spiSS, XS1_SETC_INUSE_ON);
   setc(p_flash.spiClkblk, XS1_SETC_INUSE_ON);
-  // Seems to be duplicate of above, is this needed or accidental?
   setc(p_flash.spiClkblk, XS1_SETC_INUSE_ON);
 
   setclk(p_flash.spiMISO, XS1_CLKBLK_REF);
@@ -90,15 +84,22 @@ enum flash_status flash_cmd_enable_ports() {
 
   settw(p_flash.spiMISO, 8);
   settw(p_flash.spiMOSI, 8);
+#endif
 
 #ifdef DFU_USER_FLASH_DEVICE
+#if (DFU_QUAD_SPI_FLASH)
+  result = fl_connectToDevice(&p_qflash, flash_devices, sizeof(flash_devices) / sizeof(fl_QuadDeviceSpec));
+#else
   result = fl_connectToDevice(&p_flash, flash_devices, sizeof(flash_devices) / sizeof(fl_DeviceSpec));
+#endif
 #else
   /* Use default flash list */
+#if (DFU_QUAD_SPI_FLASH)
+  result = fl_connect(&p_qflash);
+#else
   result = fl_connect(&p_flash);
 #endif
-#endif // DFU_QUAD_SPI_FLASH
-
+#endif
   if (!result) {
     /* All okay.. */
     return DFU_FLASH_OK;

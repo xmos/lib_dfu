@@ -7,9 +7,9 @@ set(NO_DATA_PARTITION ON)
 
 set(LIB_DEPENDENT_MODULES   "lib_xassert(4.3.2)" "lib_logging(3.4.0)")
 
-set(LIB_INCLUDES            api src)
+set(LIB_INCLUDES            api src src/modules)
 
-set(LIB_C_SRCS              src/dfu_flashlib_user.c)
+set(LIB_C_SRCS              src/dfu_flashlib_user.c src/modules/fifo.c)
 set(LIB_XC_SRCS             src/dfu_buffer_converter.xc src/dfu.xc)
 
 if (DFU_FLASH_UNIT_TEST)
