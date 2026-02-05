@@ -47,7 +47,7 @@ int write(hwtimer_t runtime, FILE* file) {
   } while ((wr_status == DFU_FLASH_OK) && !feof(file) && !hwtimer_time_after(running, max_runtime));
 
   printf("Read total %zu\n", read_total);
-  printf("Write time: %0.3fs\n", (float)wr_run_time / (float)XS1_TIMER_HZ);  // Typically ~30ms seconds
+  printf("Write time: %0.3fs\n", (float)wr_run_time / (float)XS1_TIMER_HZ);  // Typically ~80ms seconds
   TEST_ASSERT_TRUE(wr_run_time < (write_timing_threshold_ms * XS1_TIMER_KHZ));
   return wr_status;
 }

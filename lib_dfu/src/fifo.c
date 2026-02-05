@@ -101,7 +101,7 @@ static int f_block_dequeue_tail_count(struct fifo *fifo) {
   }
 }
 
-int fifo_block_enqueue(struct fifo *fifo, uint8_t *data, int length) {
+int fifo_block_enqueue(struct fifo *fifo, const uint8_t data[], int length) {
   if (fifo == NULL || data == NULL || length <= 0) {
     return FIFO_BAD_PARAM;
   }
@@ -133,7 +133,7 @@ int fifo_block_enqueue(struct fifo *fifo, uint8_t *data, int length) {
   return FIFO_OK;
 }
 
-int fifo_block_dequeue(struct fifo *fifo, uint8_t *data, int length) {
+int fifo_block_dequeue(struct fifo *fifo, uint8_t data[], int length) {
   if (fifo == NULL || data == NULL || length <= 0) {
     return FIFO_BAD_PARAM;
   }

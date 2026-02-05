@@ -92,19 +92,21 @@ int fifo_size(REFERENCE_PARAM(struct fifo, fifo));
  * \param data Pointer to data block to enqueue
  * \param length Number of bytes to enqueue
  * \retval FIFO_OK on success
+ * \retval FIFO_BAD_PARAM if fifo or data pointer is null, or length <= 0
  * \retval FIFO_FULL if fifo does not have enough space, fifo does not perfrom best-effort so if space is insufficient
  * no data is enqueued, \retval FIFO_BAD_PARAM if fifo or data pointer is null
  */
-int fifo_block_enqueue(REFERENCE_PARAM(struct fifo, fifo), REFERENCE_PARAM(uint8_t, data), int length);
+int fifo_block_enqueue(REFERENCE_PARAM(struct fifo, fifo), const uint8_t data[], int length);
 
 /** Dequeue block of bytes from fifo
  * \param fifo Pointer to fifo structure
  * \param data Pointer to buffer to store dequeued data
  * \param length Number of bytes to dequeue
  * \retval FIFO_OK on success
+ * \retval FIFO_BAD_PARAM if fifo or data pointer is null, or length <= 0
  * \retval FIFO_EMPTY if fifo does not have enough data, fifo does not perfrom best-effort so if insufficient data is
  * available no data is dequeued, \retval FIFO_BAD_PARAM if fifo or data pointer is null
  */
-int fifo_block_dequeue(REFERENCE_PARAM(struct fifo, fifo), REFERENCE_PARAM(uint8_t, data), int length);
+int fifo_block_dequeue(REFERENCE_PARAM(struct fifo, fifo), uint8_t data[], int length);
 
 #endif  // FIFO_H
