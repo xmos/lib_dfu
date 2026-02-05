@@ -9,6 +9,7 @@
 #include <platform.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <xcore/hwtimer.h>
 
 #define XASSERT_ENABLE_DEBUG 1
@@ -79,14 +80,25 @@ static void run_test(UnityTestFunction func, const char* name, UNITY_LINE_TYPE l
 
 extern uint32_t erase_timing_threshold_ms;
 extern uint32_t write_timing_threshold_ms;
-extern FILE* upgrade_file;
+extern uint8_t* upgrade_mem;
+extern int upgrade_length;
+
+#define READ_BLOCK_SIZE_BYTES 1024
 
 /*=======MAIN=====*/
 int main(int argc, char * argv[])
 {
   xassert((argc == 4) && msg("Usage: <file>.xe <upgrade-image-file> <erase-timing> <write-timing>"));
 
-  upgrade_file = fopen(argv[1], "rb");
+  FILE* upgrade_file = fopen(argv[1], "rb");
+  xassert(upgrade_file != NULL && msg("Error: failed to open upgrade image file"));
+  upgrade_mem = malloc(20 * READ_BLOCK_SIZE_BYTES);
+  xassert(upgrade_mem != NULL && msg("Error: failed to allocate memory"));
+
+  size_t read = fread(upgrade_mem, 1, 20 * READ_BLOCK_SIZE_BYTES, upgrade_file);
+  xassert(feof(upgrade_file) && msg("Error: failed to read entire upgrade image file"));
+  printf("Read total %zu\n", read);
+  upgrade_length = (int)read;
 
   int32_t time_temp;
   int scan = sscanf(argv[2], "%ld", &time_temp);
