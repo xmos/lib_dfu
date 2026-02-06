@@ -130,6 +130,10 @@ int flash_get_page_size(void);
  */
 int flash_get_size(void);
 
+/* The following is DEPRECATED
+ * Will be removed as dfu.xc is updated.
+ */
+
 #include "dfu_flash_result.h"
 
 bool flash_is_first_whole_page_in_sector(unsigned address);
