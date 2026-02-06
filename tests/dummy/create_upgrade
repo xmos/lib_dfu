@@ -1,3 +1,0 @@
-#! /bin/bash
-
-xflash --factory-version 15.3 --upgrade 1 .\bin\hello_world.xe -o .\bin\hello_world.bin || exit $?

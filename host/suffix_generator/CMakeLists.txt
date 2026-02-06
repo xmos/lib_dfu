@@ -22,7 +22,7 @@ target_link_libraries(${SUFFIX_GEN} )
 target_include_directories(${SUFFIX_GEN} PRIVATE ${INCLUDE_DIRS})
 
 if (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
-        target_compile_options(${SUFFIX_GEN} PUBLIC -O2 /W4)
+        target_compile_options(${SUFFIX_GEN} PUBLIC /O2 /W4)
 else()
         target_compile_options(${SUFFIX_GEN} PUBLIC -g -O2 -Wall -Wextra -Wpedantic
                                 -Wconversion

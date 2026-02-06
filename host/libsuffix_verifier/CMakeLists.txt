@@ -22,7 +22,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
 add_library(suffix_verifier STATIC ${SOURCE_FILES})
 
 if (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
-        target_compile_options(suffix_verifier PUBLIC -O2 /W4)
+        target_compile_options(suffix_verifier PUBLIC /O2 /W4)
 else()
         target_compile_options(suffix_verifier PUBLIC -g -O2 -Wall -Wextra -Wpedantic
                                 -Wconversion

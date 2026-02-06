@@ -11,7 +11,7 @@
 
 #include "dfu.h"
 
-struct flash_seesion {
+struct flash_session {
   int device_open;
   fl_BootImageInfo factory_image;
   fl_BootImageInfo upgrade_image;
@@ -19,7 +19,7 @@ struct flash_seesion {
   int upgrade_image_valid;
 };
 
-static struct flash_seesion flash_session;
+static struct flash_session session;
 
 enum flash_status flash_cmd_enable_ports() __attribute__((weak));
 enum flash_status flash_cmd_enable_ports() { return DFU_FLASH_OPEN_ERROR; }
@@ -27,23 +27,24 @@ enum flash_status flash_cmd_enable_ports() { return DFU_FLASH_OPEN_ERROR; }
 enum flash_status flash_cmd_disable_ports() __attribute__((weak));
 enum flash_status flash_cmd_disable_ports() { return DFU_FLASH_OPEN_ERROR; }
 
+// TODO move to central location
 void DFUCustomFlashEnable() __attribute__((weak));
-void DFUCustomFlashEnable() { return; }
+void DFUCustomFlashEnable() {}
 
 void DFUCustomFlashDisable() __attribute__((weak));
-void DFUCustomFlashDisable() { return; }
+void DFUCustomFlashDisable() {}
 
 /* Returns non-zero for error */
 enum flash_status flash_cmd_init(void) {
   fl_BootImageInfo image;
 
-  if (!flash_session.device_open) {
+  if (!session.device_open) {
     if (flash_cmd_enable_ports() == DFU_FLASH_OK) {
-      flash_session.device_open = 1;
+      session.device_open = 1;
     }
   }
 
-  if (!flash_session.device_open) {
+  if (!session.device_open) {
     return DFU_FLASH_OPEN_ERROR;
   }
 
@@ -56,23 +57,23 @@ enum flash_status flash_cmd_init(void) {
     return DFU_FLASH_GET_FACTORY_IMAGE_FAILED;
   }
 
-  flash_session.factory_image = image;
+  session.factory_image = image;
 
   if (fl_getNextBootImage(&image) == 0) {
-    flash_session.upgrade_image_valid = 1;
-    flash_session.upgrade_image = image;
+    session.upgrade_image_valid = 1;
+    session.upgrade_image = image;
   }
 
   return DFU_FLASH_OK;
 }
 
 enum flash_status flash_cmd_deinit(void) {
-  if (!flash_session.device_open) {
+  if (!session.device_open) {
     return DFU_FLASH_OK;
   }
 
   flash_cmd_disable_ports();
-  flash_session.device_open = 0;
+  session.device_open = 0;
   return DFU_FLASH_OK;
 }
 
@@ -81,17 +82,17 @@ enum flash_status flash_erase_sector_async(unsigned address) {
   (void)address;
 
   int ret = 0;
-  if (flash_session.upgrade_image_valid) {
-    ret = fl_startImageReplace(&flash_session.upgrade_image, FLASH_MAX_UPGRADE_SIZE);
+  if (session.upgrade_image_valid) {
+    ret = fl_startImageReplace(&session.upgrade_image, FLASH_MAX_UPGRADE_SIZE);
   } else {
-    ret = fl_startImageAdd(&flash_session.factory_image, FLASH_MAX_UPGRADE_SIZE, 0);
+    ret = fl_startImageAdd(&session.factory_image, FLASH_MAX_UPGRADE_SIZE, 0);
   }
   if (ret < 0) {
     return DFU_FLASH_ERASE_ERROR;
   } else if (ret > 0) {
     return DFU_FLASH_BUSY;
   } else {
-    flash_session.upgrade_image_valid = 0;
+    session.upgrade_image_valid = 0;
     return DFU_FLASH_OK;
   }
 }
@@ -99,8 +100,8 @@ enum flash_status flash_erase_sector_async(unsigned address) {
 enum flash_status flash_write_page(const unsigned char *page, int length) {
   if (page == NULL || length != (int)fl_getPageSize()) {
     return DFU_FLASH_BAD_PARAM;
-    
-  } else if (flash_session.upgrade_image_valid) {
+
+  } else if (session.upgrade_image_valid) {
     return DFU_FLASH_ERASE_ERROR;
 
   } else if (fl_writeImagePage(page) != 0) {
@@ -115,21 +116,21 @@ enum flash_status flash_finalise_write() {
   }
 
   // Sanity check
-  fl_BootImageInfo image = flash_session.factory_image;
+  fl_BootImageInfo image = session.factory_image;
   if (fl_getNextBootImage(&image) != 0) {
     return DFU_FLASH_OPEN_ERROR;
   }
-  flash_session.upgrade_image = image;
-  flash_session.upgrade_image_valid = 1;
+  session.upgrade_image = image;
+  session.upgrade_image_valid = 1;
   return DFU_FLASH_OK;
 }
 
 enum flash_status flash_start_read() {
-  if (!flash_session.upgrade_image_valid) {
+  if (!session.upgrade_image_valid) {
     return DFU_FLASH_READ_NO_IMAGE;
 
   } else {
-    int read = fl_startImageRead(&flash_session.upgrade_image);
+    int read = fl_startImageRead(&session.upgrade_image);
     if (read != 0) {
       return DFU_FLASH_READ_ERROR;
     } else {
@@ -142,9 +143,8 @@ enum flash_status flash_read_page(unsigned char *data, int length) {
   if (data == NULL || length != (int)fl_getPageSize()) {
     return DFU_FLASH_BAD_PARAM;
 
-  } else if (!flash_session.upgrade_image_valid) {
+  } else if (!session.upgrade_image_valid) {
     return DFU_FLASH_READ_NO_IMAGE;
-
   }
 
   if (fl_readImagePage(data) != 0) {

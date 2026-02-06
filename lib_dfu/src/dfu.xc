@@ -192,7 +192,7 @@ static enum dfu_status getstatus_from_dnload(bool &busy)
           sub_transition_dnload(DNLOAD_WRITING_PAGE);
 
           // TODO - fix flash
-          if (flash_write_page(dnload.page, 256) != 0)
+          if (flash_write_page(dnload.page, DFU_FLASH_PAGE_SIZE_BYTES) != 0)
             return ERR_WRITE;
         }
       }
@@ -211,7 +211,7 @@ static enum dfu_status getstatus_from_dnload(bool &busy)
 
         sub_transition_dnload(DNLOAD_WRITING_PAGE);
 
-        if (flash_write_page(dnload.page, 256) != 0)
+        if (flash_write_page(dnload.page, DFU_FLASH_PAGE_SIZE_BYTES) != 0)
           return ERR_WRITE;
       }
       break;

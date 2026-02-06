@@ -77,6 +77,7 @@ enum flash_status flash_cmd_enable_ports() {
   setc(p_flash.spiMOSI, XS1_SETC_INUSE_ON);
   setc(p_flash.spiSS, XS1_SETC_INUSE_ON);
   setc(p_flash.spiClkblk, XS1_SETC_INUSE_ON);
+  // Seems to be duplicate of above, is this needed or accidental?
   setc(p_flash.spiClkblk, XS1_SETC_INUSE_ON);
 
   setclk(p_flash.spiMISO, XS1_CLKBLK_REF);
