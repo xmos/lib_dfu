@@ -33,6 +33,9 @@ def pytest_configure(config):
         # This is required for the prepare_upgrade_slot tests
         subprocess.run(["xflash", "--factory", "../../dummy/bin/hello_world.xe"], check=True)
 
+    subprocess.run(["xflash", "--factory-version", "15.3", "--upgrade", "1", "../../dummy/bin/hello_world.xe",
+                    "-o", "../../dummy/bin/hello_world.bin"], check=True)
+
 
 def pytest_collect_file(parent, file_path: Path):
     """Custom collection function to inform pytest that xe files contain tests."""
