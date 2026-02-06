@@ -191,7 +191,7 @@ pipeline {
                                     }
                                     dir("flash_hardware/prepare_upgrade_slot") {
                                         withXTAG(["XCORE-AI-EXPLORER"]) {
-                                            xtagIds -> runPytest("--adapter-id ${xtagIds[0]}")
+                                            xtagIds -> runPytest("-n=1 --adapter-id ${xtagIds[0]}")
                                         }
                                     }
                                 }
