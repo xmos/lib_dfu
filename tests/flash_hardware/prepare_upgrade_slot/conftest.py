@@ -9,7 +9,7 @@ from pathlib import Path
 
 def pytest_addoption(parser):
     parser.addoption("--level", action="store", default="smoke", help="smoke or extended")
-    parser.addoption("--adapter-id", action="store", default="XXXXXXXX", help="XTAG adapter ID")
+    parser.addoption("--adapter-id", action="store", default="", help="XTAG adapter ID")
 
 
 # Is there a better way to pass cmd=line options to test that inherit from pytest.Item? I couldn't find a way to do
@@ -26,8 +26,12 @@ def pytest_configure(config):
     level = config.getoption("--level")
     adapter_id = config.getoption("--adapter-id")
 
-    # This is required for the prepare_upgrade_slot tests
-    subprocess.run(["xflash", "--adapter-id", adapter_id, "--factory", "../../dummy/bin/hello_world.xe"], check=True)
+    if adapter_id:
+        # This is required for the prepare_upgrade_slot tests
+        subprocess.run(["xflash", "--adapter-id", adapter_id, "--factory", "../../dummy/bin/hello_world.xe"], check=True)
+    else:
+        # This is required for the prepare_upgrade_slot tests
+        subprocess.run(["xflash", "--factory", "../../dummy/bin/hello_world.xe"], check=True)
 
 
 def pytest_collect_file(parent, file_path: Path):
@@ -61,8 +65,15 @@ class UnityTestExecutable(pytest.Item):
         """
         fancy test output processing.
         """
-        proc = subprocess.run(["xrun", "--xscope", "--adapter-id", self.adapter_id, "--args", self.xe, "../../dummy/bin/hello_world.bin",
-                              "10000", "120"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        # Test time limits for given operations
+        erase_time_ms = "10000"
+        write_time_ms = "120"
+        xrun_cmd = ["xrun", "--xscope"]
+        if self.adapter_id:
+            xrun_cmd += ["--adapter-id", self.adapter_id]
+        xrun_cmd += ["--args", self.xe, "../../dummy/bin/hello_world.bin", erase_time_ms, write_time_ms]
+        proc = subprocess.run(xrun_cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
         self.add_report_section("call", "stdout", proc.stdout)
         unity_result_pattern = r"^(?P<path>[^\n:]+):(?P<line>\d+):(?P<name>[^:]+):(?P<status>PASS|FAIL)(: (?P<message>.*))?$"
         unlikely_repl = "unlikely_repl"
