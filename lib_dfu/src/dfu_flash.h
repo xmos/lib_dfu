@@ -93,6 +93,14 @@ enum flash_status flash_write_page(const unsigned char page[], int length);
  */
 enum flash_status flash_finalise_write();
 
+/** Prepare to read from flash
+ * \note Must call flash_cmd_init() before this function, and flash_cmd_deinit() when done with flash operations.
+ * \retval DFU_FLASH_OK if ready to read
+ * \retval DFU_FLASH_READ_NO_IMAGE if there is no valid upgrade image to read
+ * \retval DFU_FLASH_READ_ERROR if failed to prepare for read due to other reason
+ */
+enum flash_status flash_start_read();
+
 /** Read a page from flash
  * \note Must call flash_cmd_init() before this function, and flash_cmd_deinit() when done with flash operations.
  *

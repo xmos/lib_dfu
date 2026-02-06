@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 def pytest_addoption(parser):
-    parser.addoption("--level", action="store", default="default", help="smoke or extended")
+    parser.addoption("--level", action="store", default="smoke", help="smoke or extended")
     parser.addoption("--adapter-id", action="store", default="XXXXXXXX", help="XTAG adapter ID")
 
 

@@ -17,7 +17,6 @@ struct flash_seesion {
   fl_BootImageInfo upgrade_image;
 
   int upgrade_image_valid;
-  int reading;
 };
 
 static struct flash_seesion flash_session;
@@ -127,12 +126,28 @@ enum flash_status flash_finalise_write() {
   return DFU_FLASH_OK;
 }
 
+enum flash_status flash_start_read() {
+  if (!flash_session.upgrade_image_valid) {
+    return DFU_FLASH_READ_NO_IMAGE;
+
+  } else {
+    int read = fl_startImageRead(&flash_session.upgrade_image);
+    if (read != 0) {
+      return DFU_FLASH_READ_ERROR;
+    } else {
+      return DFU_FLASH_OK;
+    }
+  }
+}
+
 enum flash_status flash_read_page(unsigned char *data, int length) {
   if (data == NULL || length != (int)fl_getPageSize()) {
     return DFU_FLASH_BAD_PARAM;
+
   } else if (!flash_session.upgrade_image_valid) {
     return DFU_FLASH_READ_NO_IMAGE;
-  } else if (!flash_session.reading == 0) {
+
+  } else if (!flash_session.reading) {
     int read = fl_startImageRead(&flash_session.upgrade_image);
     if (read != 0) {
       return DFU_FLASH_READ_ERROR;

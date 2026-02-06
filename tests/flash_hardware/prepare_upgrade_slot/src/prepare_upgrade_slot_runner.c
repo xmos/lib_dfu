@@ -9,6 +9,7 @@
 #include <platform.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <xcore/hwtimer.h>
 
@@ -21,6 +22,7 @@ extern void setUp(void);
 extern void tearDown(void);
 extern void test_dfu_flash_prepare_slot_reports_OK(void);
 extern void test_dfu_flash_write_reports_OK(void);
+extern void test_dfu_flash_verify_reports_OK(void);
 
 
 /*=======Mock Management=====*/
