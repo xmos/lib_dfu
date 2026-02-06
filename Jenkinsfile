@@ -36,18 +36,6 @@ pipeline {
 
     stages {
         // This is a prompt of what testing needs porting from old Jenkinsfile
-        //     stage('Tests') {
-        //       parallel {
-        //         stage('Device simulation tests') {
-        //           steps {
-        //             dir("${REPO}/tests/device_simulation") {
-        //               runWaf('.')
-        //               viewEnv() {
-        //                 runPytest()
-        //               }
-        //             }
-        //           }
-        //         }
         //         stage('Build of hardware system tests') {
         //           steps {
         //             dir("${REPO}/tests/system_hardware") {
@@ -55,19 +43,6 @@ pipeline {
         //             }
         //           }
         //         }
-        //         stage('Host tests') {
-        //           steps {
-        //             dir("${REPO}/tests/host") {
-        //               sh 'make'
-        //               viewEnv() {
-        //                 runPytest()
-        //               }
-        //             }
-        //           }
-        //         }
-        //       }
-        //     }
-        //   }
 
         stage('🏗️ Build and test') {
             agent {
