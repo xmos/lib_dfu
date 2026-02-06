@@ -37,8 +37,6 @@ void DFUCustomFlashDisable() { return; }
 enum flash_status flash_cmd_init(void) {
   fl_BootImageInfo image;
 
-  flash_session.reading = 0;
-
   if (!flash_session.device_open) {
     if (flash_cmd_enable_ports() == DFU_FLASH_OK) {
       flash_session.device_open = 1;
@@ -147,13 +145,6 @@ enum flash_status flash_read_page(unsigned char *data, int length) {
   } else if (!flash_session.upgrade_image_valid) {
     return DFU_FLASH_READ_NO_IMAGE;
 
-  } else if (!flash_session.reading) {
-    int read = fl_startImageRead(&flash_session.upgrade_image);
-    if (read != 0) {
-      return DFU_FLASH_READ_ERROR;
-    } else {
-      flash_session.reading = 1;
-    }
   }
 
   if (fl_readImagePage(data) != 0) {
