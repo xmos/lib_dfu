@@ -46,7 +46,7 @@ int write(hwtimer_t runtime, uint8_t* mem, int length) {
 
   printf("Read total %d\n", read_total);
   printf("Write time: %0.3fs\n", (float)(running - start_runtime) / (float)XS1_TIMER_HZ);  // Typically ~80ms seconds
-  TEST_ASSERT_LESS_THAN_UINT32((running - start_runtime), (write_timing_threshold_ms * XS1_TIMER_KHZ));
+  TEST_ASSERT_LESS_THAN_UINT32((write_timing_threshold_ms * XS1_TIMER_KHZ), (running - start_runtime));
   return wr_status;
 }
 
@@ -76,7 +76,7 @@ int read(hwtimer_t runtime, uint8_t* mem, int length) {
   printf("Read total %d\n", read_total);
   printf("Read time: %0.3fs\n", (float)(running - start_runtime) / (float)XS1_TIMER_HZ);  // Typically ~80ms seconds
   TEST_ASSERT_TRUE(match);
-  TEST_ASSERT_LESS_THAN_UINT32((running - start_runtime), (write_timing_threshold_ms * XS1_TIMER_KHZ));
+  TEST_ASSERT_LESS_THAN_UINT32((write_timing_threshold_ms * XS1_TIMER_KHZ), (running - start_runtime));
   return rd_status;
 }
 
@@ -99,8 +99,8 @@ void test_dfu_flash_prepare_slot_reports_OK(void) {
   } while (erase == DFU_FLASH_BUSY && !hwtimer_time_after(running, max_runtime));
 
   printf("Erase time: %0.2fs\n", (float)(running - start_runtime) / XS1_TIMER_HZ);  // Typically ~7 seconds
-  TEST_ASSERT_GREATER_THAN_UINT32((running - start_runtime), (4000 * XS1_TIMER_KHZ));
-  TEST_ASSERT_LESS_THAN_UINT32((running - start_runtime), (erase_timing_threshold_ms * XS1_TIMER_KHZ));
+  TEST_ASSERT_GREATER_THAN_UINT32((4000 * XS1_TIMER_KHZ), (running - start_runtime));
+  TEST_ASSERT_LESS_THAN_UINT32((erase_timing_threshold_ms * XS1_TIMER_KHZ), (running - start_runtime));
   TEST_ASSERT_EQUAL(DFU_FLASH_OK, erase);
 }
 
