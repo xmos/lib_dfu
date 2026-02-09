@@ -90,7 +90,7 @@ void test_dfu_image_analysis(void) {
   fl_BootImageInfo boot_image_info;
   int status = fl_getImageInfo(&boot_image_info, upgrade_mem);
   TEST_ASSERT_EQUAL(0, status);
-  upgrade_size = boot_image_info.size;
+  upgrade_size = (int)boot_image_info.size;
 }
 
 void test_dfu_flash_prepare_slot_reports_OK(void) {
