@@ -84,7 +84,6 @@ static void run_test(UnityTestFunction func, const char* name, UNITY_LINE_TYPE l
 extern uint32_t erase_timing_threshold_ms;
 extern uint32_t write_timing_threshold_ms;
 extern uint8_t* upgrade_mem;
-extern int upgrade_length;
 
 #define READ_BLOCK_SIZE_BYTES 1024
 
@@ -101,7 +100,6 @@ int main(int argc, char * argv[])
   size_t read = fread(upgrade_mem, 1, 20 * READ_BLOCK_SIZE_BYTES, upgrade_file);
   xassert(feof(upgrade_file) && msg("Error: failed to read entire upgrade image file"));
   printf("Read total %zu\n", read);
-  upgrade_length = (int)read;
 
   int32_t time_temp;
   int scan = sscanf(argv[2], "%ld", &time_temp);

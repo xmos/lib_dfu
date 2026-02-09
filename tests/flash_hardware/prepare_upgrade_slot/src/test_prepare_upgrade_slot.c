@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unity.h>
 #include <xcore/hwtimer.h>
 
@@ -13,10 +14,10 @@
 
 /* Main args */
 uint8_t* upgrade_mem = NULL;
-int upgrade_length = 0;
 uint32_t erase_timing_threshold_ms = 0;
 uint32_t write_timing_threshold_ms = 0;
 
+static int upgrade_size = 0;
 static hwtimer_t prepare_timer;
 
 void setUp() { prepare_timer = hwtimer_alloc(); }
@@ -63,6 +64,8 @@ int read(hwtimer_t runtime, uint8_t* mem, int length) {
   uint8_t verify[DFU_FLASH_PAGE_SIZE_BYTES] = {0};
   int page_size = flash_get_page_size();
   TEST_ASSERT_EQUAL(DFU_FLASH_PAGE_SIZE_BYTES, page_size);
+  enum flash_status prep_status = flash_start_read();
+  TEST_ASSERT_EQUAL(DFU_FLASH_OK, prep_status);
   do {
     rd_status = flash_read_page(verify, page_size);
     match &= (memcmp(page, verify, (unsigned)page_size) == 0);
@@ -100,7 +103,7 @@ void test_dfu_image_analysis(void) {
 void test_dfu_flash_prepare_slot_reports_OK(void) {
   int status = flash_cmd_init();
   TEST_ASSERT_EQUAL(DFU_FLASH_OK, status);
-
+  
   uint32_t start_runtime = hwtimer_get_time(prepare_timer);
   uint32_t max_runtime = start_runtime + (60UL * XS1_TIMER_HZ);  // 60s
   uint32_t running;
@@ -121,11 +124,12 @@ void test_dfu_flash_prepare_slot_reports_OK(void) {
 
 void test_dfu_flash_write_reports_OK(void) {
   TEST_ASSERT_NOT_NULL(upgrade_mem);
+  TEST_ASSERT_NOT_EQUAL(0, upgrade_size);
 
   int status = flash_cmd_init();
   TEST_ASSERT_EQUAL(DFU_FLASH_OK, status);
 
-  int wr_status = write(prepare_timer, upgrade_mem, upgrade_length);
+  int wr_status = write(prepare_timer, upgrade_mem, upgrade_size);
 
   enum flash_status final = flash_finalise_write();
 
@@ -143,7 +147,7 @@ void test_dfu_flash_verify_reports_OK(void) {
   enum flash_status prep_status = flash_start_read();
   TEST_ASSERT_EQUAL(DFU_FLASH_OK, prep_status);
 
-  int rd_status = read(prepare_timer, upgrade_mem, upgrade_length);
+  int rd_status = read(prepare_timer, upgrade_mem, upgrade_size);
 
   TEST_ASSERT_EQUAL(DFU_FLASH_OK, rd_status);
 }
