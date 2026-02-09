@@ -20,6 +20,7 @@
 /*=======External Functions This Runner Calls=====*/
 extern void setUp(void);
 extern void tearDown(void);
+extern void test_dfu_image_analysis(void);
 extern void test_dfu_flash_prepare_slot_reports_OK(void);
 extern void test_dfu_flash_write_reports_OK(void);
 extern void test_dfu_flash_verify_reports_OK(void);
@@ -115,8 +116,10 @@ int main(int argc, char * argv[])
 
   /* Unity runner */
   UnityBegin("src/test_prepare_upgrade_slot.c");
-  run_test(test_dfu_flash_prepare_slot_reports_OK, "test_dfu_flash_prepare_slot_reports_OK", 48);
-  run_test(test_dfu_flash_write_reports_OK, "test_dfu_flash_write_reports_OK", 70);
+  run_test(test_dfu_image_analysis, "test_dfu_image_analysis", 86);
+  run_test(test_dfu_flash_prepare_slot_reports_OK, "test_dfu_flash_prepare_slot_reports_OK", 100);
+  run_test(test_dfu_flash_write_reports_OK, "test_dfu_flash_write_reports_OK", 122);
+  run_test(test_dfu_flash_verify_reports_OK, "test_dfu_flash_verify_reports_OK", 137);
 
   fclose(upgrade_file);
   return UnityEnd(); 

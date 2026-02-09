@@ -81,6 +81,21 @@ int read(hwtimer_t runtime, uint8_t* mem, int length) {
 }
 
 // TODO - Ideally test with factory-only and upgrade image present
+#include <stdio.h>
+
+void test_dfu_image_analysis(void) {
+  fl_BootImageInfo boot_image_info;
+  int status = fl_getImageInfo(&boot_image_info, upgrade_mem);
+  TEST_ASSERT_EQUAL(0, status);
+  printf("image:\n");
+  for(int i = 0; i < 256; i++) {
+    printf("0x%02X, ", upgrade_mem[i]);
+    if ((i % 16) == 15) {
+      printf("\n");
+    }
+  }
+  printf("\n");
+}
 
 void test_dfu_flash_prepare_slot_reports_OK(void) {
   int status = flash_cmd_init();
