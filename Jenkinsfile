@@ -19,7 +19,7 @@ pipeline {
         )
         string(
             name: 'INFR_APPS_VERSION',
-            defaultValue: 'v3.2.1',
+            defaultValue: 'v3.3.0',
             description: 'The infr_apps version'
         )
         choice(
