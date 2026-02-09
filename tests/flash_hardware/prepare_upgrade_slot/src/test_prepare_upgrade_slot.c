@@ -90,14 +90,7 @@ void test_dfu_image_analysis(void) {
   fl_BootImageInfo boot_image_info;
   int status = fl_getImageInfo(&boot_image_info, upgrade_mem);
   TEST_ASSERT_EQUAL(0, status);
-  printf("image:\n");
-  for(int i = 0; i < 256; i++) {
-    printf("0x%02X, ", upgrade_mem[i]);
-    if ((i % 16) == 15) {
-      printf("\n");
-    }
-  }
-  printf("\n");
+  upgrade_size = boot_image_info.size;
 }
 
 void test_dfu_flash_prepare_slot_reports_OK(void) {
@@ -140,6 +133,7 @@ void test_dfu_flash_write_reports_OK(void) {
 
 void test_dfu_flash_verify_reports_OK(void) {
   TEST_ASSERT_NOT_NULL(upgrade_mem);
+  TEST_ASSERT_NOT_EQUAL(0, upgrade_size);
 
   int status = flash_cmd_init();
   TEST_ASSERT_EQUAL(DFU_FLASH_OK, status);
