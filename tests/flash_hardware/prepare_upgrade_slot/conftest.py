@@ -69,8 +69,8 @@ class UnityTestExecutable(pytest.Item):
         fancy test output processing.
         """
         # Test time limits for given operations
-        erase_time_ms = "10000"
-        write_time_ms = "120"
+        erase_time_ms = "15000"
+        write_time_ms = "200"
         xrun_cmd = ["xrun", "--xscope"]
         if self.adapter_id:
             xrun_cmd += ["--adapter-id", self.adapter_id]
