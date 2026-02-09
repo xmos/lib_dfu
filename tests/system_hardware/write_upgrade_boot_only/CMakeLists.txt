@@ -23,7 +23,7 @@ set(APP_COMPILER_FLAGS
   -Wsign-compare
 )
 
-set(APP_DEPENDENT_MODULES lib_dfu "lib_xassert(4.3.2)" "lib_logging(3.4.0)")
+include(${CMAKE_CURRENT_LIST_DIR}/../../deps.cmake)
 
 set(XMOS_SANDBOX_DIR        ${CMAKE_CURRENT_LIST_DIR}/../../../..)
 
