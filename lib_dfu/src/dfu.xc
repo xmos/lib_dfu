@@ -535,20 +535,26 @@ struct dfu_cmd_response dfu_request_with_arguments(enum dfu_request request,
 
   } else if ((request == XMOS_DFU_BUS_RESET) && (response.status != DFU_API_SUCCESS)) {
     // if bus reset was not handled by state machine handlers, handle it here by resetting to app idle.
-    if (state != STATE_APP_IDLE) {
+    if ((state == STATE_APP_IDLE) || (state == STATE_APP_DETACH)) {  
+      response = normal_transition(STATE_APP_IDLE);
+
+    } else {
       /* Exit from DFU mode. Send reboot command */
       flash_deinit();
+#if defined(DFU_CONFIG_USB_INBAND_FUNCTIONS) && (DFU_CONFIG_USB_INBAND_FUNCTIONS == 1)
       timer tmr;
       unsigned now;
       tmr :> now;
       debug_printf("Rebooting out of DFU mode\n");
       tmr when timerafter(now + (DELAY_BEFORE_REBOOT_FROM_DFU_MS * XS1_TIMER_KHZ)) :> void;
-      // TODO - should this be deferred?
       device_reboot();
       // Note: testing will fall through to app idle without reboot, which is fine.
+      response = normal_transition(STATE_APP_IDLE);
+#else
+      response.status = DFU_API_SUCCESS;
+      response.deferred_request = DFU_DEFERRED_ACTION_REBOOT;
+#endif
     }
-    response = normal_transition(STATE_APP_IDLE);
-
   } else {
     /* For other requests, delegate to state machine handlers */
   }
