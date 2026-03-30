@@ -9,11 +9,6 @@ def createShallowGitScm(existingScm) {
      * @return new GitSCM object with shallow clone and submodule extensions
      */
     
-    // Import required classes
-    import hudson.plugins.git.GitSCM
-    import hudson.plugins.git.extensions.impl.SubmoduleOption
-    import hudson.plugins.git.extensions.impl.CloneOption
-    
     // Create the new extensions list with your specified configurations
     def newExtensions = [
         new SubmoduleOption(
