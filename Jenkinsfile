@@ -12,57 +12,57 @@ def mycreateShallow() {
   ]
 }
 
-def createShallowGitScm(existingScm) {
-    /**
-     * Creates a new GitSCM object from an existing one with modified extensions
-     * for shallow cloning and submodule handling.
-     * 
-     * @param existingScm - The existing GitSCM object to base the new one on
-     * @return new GitSCM object with shallow clone and submodule extensions
-     */
+// def createShallowGitScm(existingScm) {
+//     /**
+//      * Creates a new GitSCM object from an existing one with modified extensions
+//      * for shallow cloning and submodule handling.
+//      * 
+//      * @param existingScm - The existing GitSCM object to base the new one on
+//      * @return new GitSCM object with shallow clone and submodule extensions
+//      */
     
-    // Create the new extensions list with your specified configurations
-    def newExtensions = [
-        new SubmoduleOption(
-            false,                    // disableSubmodules
-            true,                     // recursiveSubmodules  
-            false,                    // trackingSubmodules
-            null,                     // reference
-            null,                     // timeout
-            null,                     // parentCredentials
-            1,                        // depth
-            true,                     // shallow
-            false                     // threads (use default)
-        ),
-        new CloneOption(
-            true,                     // shallow
-            false,                    // noTags
-            '',                       // reference
-            15,                       // timeout
-            1                         // depth
-        )
-    ]
+//     // Create the new extensions list with your specified configurations
+//     def newExtensions = [
+//         new SubmoduleOption(
+//             false,                    // disableSubmodules
+//             true,                     // recursiveSubmodules  
+//             false,                    // trackingSubmodules
+//             null,                     // reference
+//             null,                     // timeout
+//             null,                     // parentCredentials
+//             1,                        // depth
+//             true,                     // shallow
+//             false                     // threads (use default)
+//         ),
+//         new CloneOption(
+//             true,                     // shallow
+//             false,                    // noTags
+//             '',                       // reference
+//             15,                       // timeout
+//             1                         // depth
+//         )
+//     ]
     
-    // Add any other existing extensions (excluding SubmoduleOption and CloneOption to avoid duplicates)
-    if (existingScm.extensions) {
-        existingScm.extensions.each { extension ->
-            if (!(extension instanceof SubmoduleOption) && !(extension instanceof CloneOption)) {
-                newExtensions.add(extension)
-            }
-        }
-    }
+//     // Add any other existing extensions (excluding SubmoduleOption and CloneOption to avoid duplicates)
+//     if (existingScm.extensions) {
+//         existingScm.extensions.each { extension ->
+//             if (!(extension instanceof SubmoduleOption) && !(extension instanceof CloneOption)) {
+//                 newExtensions.add(extension)
+//             }
+//         }
+//     }
     
-    // Create and return new GitSCM object
-    return new GitSCM(
-        existingScm.userRemoteConfigs,
-        existingScm.branches,
-        // existingScm.doGenerateSubmoduleConfigurations,
-        // existingScm.submoduleCfg,
-        existingScm.browser,
-        existingScm.gitTool,
-        newExtensions
-    )
-}
+//     // Create and return new GitSCM object
+//     return new GitSCM(
+//         existingScm.userRemoteConfigs,
+//         existingScm.branches,
+//         // existingScm.doGenerateSubmoduleConfigurations,
+//         // existingScm.submoduleCfg,
+//         existingScm.browser,
+//         existingScm.gitTool,
+//         newExtensions
+//     )
+// }
 
 getApproval()
 
