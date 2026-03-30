@@ -41,8 +41,8 @@ pipeline {
                 script {
                     def (server, user, repo) = extractFromScmUrl()
                     env.REPO_NAME = repo
-                    printenv
-                    println ">> scm ${scm}"
+                    sh 'printenv'
+                    echo ">> scm ${scm}"
                 }
             }
         }
