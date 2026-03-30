@@ -42,7 +42,9 @@ pipeline {
                     def (server, user, repo) = extractFromScmUrl()
                     env.REPO_NAME = repo
                     sh 'printenv'
-                    echo ">> scm ${scm}"
+                    echo ">> scm ${scm.userRemoteConfigs}"
+                    echo ">> scm ${scm.branches}"
+                    echo ">> scm ${scm.extensions}"
                 }
             }
         }
