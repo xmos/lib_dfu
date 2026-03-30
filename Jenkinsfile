@@ -1,5 +1,17 @@
 @Library('xmos_jenkins_shared_library@v0.43.3') _
 
+def mycreateShallow() {
+  checkout scm: [
+    $class: 'GitSCM',
+    branches: scm.branches,
+    userRemoteConfigs: scm.userRemoteConfigs,
+    extensions: scm.extensions + [
+      submodule(depth: 1, recursiveSubmodules: true, shallow: true),
+      cloneOption(depth: 1, noTags: false, shallow: true)
+    ]
+  ]
+}
+
 def createShallowGitScm(existingScm) {
     /**
      * Creates a new GitSCM object from an existing one with modified extensions
@@ -116,11 +128,11 @@ pipeline {
 
                                 dir(REPO_NAME){
                                     // checkoutScmShallow()
-                                    
-                                    script {
-                                        def shallowScm = createShallowGitScm(scm)
-                                        checkout(shallowScm)
-                                    }
+                                    mycreateShallow()
+                                    // script {
+                                    //     def shallowScm = createShallowGitScm(scm)
+                                    //     checkout(shallowScm)
+                                    // }
                                 }
                             }
                         }
@@ -176,10 +188,7 @@ pipeline {
                         stage('Checkout') {
                             steps {
                                 dir(REPO_NAME) {
-                                    script {
-                                        def shallowScm = createShallowGitScm(scm)
-                                        checkout(shallowScm)
-                                    }
+                                    mycreateShallow()
                                 }
                             }
                         }
@@ -246,10 +255,7 @@ pipeline {
                         println "Stage running on ${env.NODE_NAME}"
 
                         dir(REPO_NAME) {
-                            script {
-                                def shallowScm = createShallowGitScm(scm)
-                                checkout(shallowScm)
-                            }
+                            mycreateShallow()
                             dir("host") {
                                 sh "cmake -B build"
                                 sh "cmake --build build"
@@ -277,10 +283,11 @@ pipeline {
                         println "Stage running on ${env.NODE_NAME}"
 
                         dir(REPO_NAME) {
-                            script {
-                                def shallowScm = createShallowGitScm(scm)
-                                checkout(shallowScm)
-                            }
+                            mycreateShallow()
+                            // script {
+                            //     def shallowScm = createShallowGitScm(scm)
+                            //     checkout(shallowScm)
+                            // }
                             dir("host") {
                                 sh "cmake -B build"
                                 sh "cmake --build build"
@@ -307,10 +314,7 @@ pipeline {
                         println "Stage running on ${env.NODE_NAME}"
 
                         dir(REPO_NAME) {
-                            script {
-                                def shallowScm = createShallowGitScm(scm)
-                                checkout(shallowScm)
-                            }
+                            mycreateShallow()
                             dir("host") {
                                 sh "cmake -B build"
                                 sh "cmake --build build"
@@ -339,10 +343,7 @@ pipeline {
                         println "Stage running on ${env.NODE_NAME}"
 
                         dir(REPO_NAME) {
-                            script {
-                                def shallowScm = createShallowGitScm(scm)
-                                checkout(shallowScm)
-                            }
+                            mycreateShallow()
                             withVS() {
                                 dir("host") {
                                     bat "cmake -B build -G Ninja"
@@ -375,10 +376,7 @@ pipeline {
                                 println "Stage running on ${env.NODE_NAME}"
 
                                 dir(REPO_NAME){
-                                    script {
-                                        def shallowScm = createShallowGitScm(scm)
-                                        checkout(shallowScm)
-                                    }
+                                    mycreateShallow()
                                     // Get dependencies (lib_device_control) for the I2C host tests on RPi and build example for test
                                     dir("examples/i2c/device") {
                                         withTools(params.TOOLS_VERSION) {
@@ -430,10 +428,7 @@ pipeline {
                             steps {
                                 println "Stage running on ${env.NODE_NAME}"
                                 dir(REPO_NAME){
-                                    script {
-                                        def shallowScm = createShallowGitScm(scm)
-                                        checkout(shallowScm)
-                                    }
+                                    mycreateShallow()
                                 }
                             }
                         }
