@@ -6,8 +6,9 @@ def mycreateShallow() {
     branches: scm.branches,
     userRemoteConfigs: scm.userRemoteConfigs,
     extensions: scm.extensions + [
-      submodule(depth: 1, recursiveSubmodules: true, shallow: true),
-      cloneOption(depth: 1, noTags: false, shallow: true)
+      submodule(recursiveSubmodules: true, shallow: false),
+    //   submodule(depth: 1, recursiveSubmodules: true, shallow: true),
+    //   cloneOption(depth: 1, noTags: false, shallow: true)
     ]
   ]
 }
